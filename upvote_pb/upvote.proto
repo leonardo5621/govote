@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package upvote;
+
+option go_package = "/upvote_pb;upvote_pb";
+
+service UserManagement {
+  rpc GetVotes(Resource) returns (VoteCount) {}
+  rpc Vote(VotePayload) returns (VoteCount) {}
+}
+
+message Resource{
+  int32 resourceId = 1;
+}
+
+message VotePayload {
+  int32 id = 1;
+  int32 voteIncrement  = 2;
+}
+
+message VoteCount {
+  int32 id = 1;
+  int32 votesCount = 2;
+}
