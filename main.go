@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"time"
 	"os/signal"
 
 	upvote "github.com/leonardo5621/govote/upvote_pb"
 	"google.golang.org/grpc"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 const (
@@ -40,22 +42,33 @@ func main() {
 		}
 	}()
 
-	mongoClient, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	credentials := options.Credential{
+		Username: "root",
+		Password: "example",
+ }
+ 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017").SetAuth(credentials)
+	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
-		log.Fatalf("Mongo DB connection error: %v", err)
-	}
-	errConnect := mongoClient.Connect(context.TODO())
-	if errConnect != nil {
 		log.Fatalf("Mongo DB connection failed: %v", err)
 	}
-	collection = mongoClient.Database("upvote").Collection("vote")
+	
+	collection = client.Database("upvote").Collection("vote")
+	res, err := collection.InsertOne(ctx, bson.D{{"name", "pi"}, {"value", 3.14159}})
+	if err != nil {
+		log.Fatalf("Failed insert: %v", err)
+	}
+	id := res.InsertedID
+	fmt.Print(id)
 
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt)
 
 	<-ch
 	fmt.Println("Closing connection")
-	if errDisconnect := mongoClient.Disconnect(context.TODO()); errDisconnect != nil {
+	if errDisconnect := client.Disconnect(context.TODO()); errDisconnect != nil {
 		log.Fatalf("Mongo DB disconnection failed: %v", err)
 	}
 	server.Stop()
