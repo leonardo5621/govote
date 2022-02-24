@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package upvote;
 
-option go_package = "github.com/leonardo5621/govote;upvote";
+option go_package = "/upvote_pb;upvote_pb";
 
 service UserManagement {
   rpc GetVotes(Resource) returns (VoteCount) {}
