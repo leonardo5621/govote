@@ -1,18 +1,19 @@
 package main
+
 import (
 	"context"
-	"log"
 	"fmt"
+	"log"
 	"net"
 	"os"
-	"time"
 	"os/signal"
+	"time"
 
 	upvote "github.com/leonardo5621/govote/upvote_pb"
-	"google.golang.org/grpc"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/bson"
+	"google.golang.org/grpc"
 )
 
 const (
@@ -35,7 +36,7 @@ func main() {
 	}
 	log.Printf("Server listening at %v", lis.Addr())
 
-	go func(){
+	go func() {
 		fmt.Println("Launching server")
 		if err := server.Serve(lis); err != nil {
 			log.Fatalf("failed to serve: %v", err)
@@ -48,13 +49,13 @@ func main() {
 	credentials := options.Credential{
 		Username: "root",
 		Password: "example",
- }
- 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017").SetAuth(credentials)
+	}
+	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017").SetAuth(credentials)
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		log.Fatalf("Mongo DB connection failed: %v", err)
 	}
-	
+
 	collection = client.Database("upvote").Collection("vote")
 	res, err := collection.InsertOne(ctx, bson.D{{"name", "pi"}, {"value", 3.14159}})
 	if err != nil {
