@@ -1,0 +1,14 @@
+name: Golang format
+on: [push]
+jobs:
+  build_test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Running build workflow"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Building server
+        run: go build .
+      - name: Finishing
+        run: echo "Server successfully built"
