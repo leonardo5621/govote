@@ -14,122 +14,122 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// UserManagementClient is the client API for UserManagement service.
+// UpvoteServiceClient is the client API for UpvoteService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type UserManagementClient interface {
+type UpvoteServiceClient interface {
 	GetVotes(ctx context.Context, in *Resource, opts ...grpc.CallOption) (*VoteCount, error)
 	Vote(ctx context.Context, in *VotePayload, opts ...grpc.CallOption) (*VoteCount, error)
 }
 
-type userManagementClient struct {
+type upvoteServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewUserManagementClient(cc grpc.ClientConnInterface) UserManagementClient {
-	return &userManagementClient{cc}
+func NewUpvoteServiceClient(cc grpc.ClientConnInterface) UpvoteServiceClient {
+	return &upvoteServiceClient{cc}
 }
 
-func (c *userManagementClient) GetVotes(ctx context.Context, in *Resource, opts ...grpc.CallOption) (*VoteCount, error) {
+func (c *upvoteServiceClient) GetVotes(ctx context.Context, in *Resource, opts ...grpc.CallOption) (*VoteCount, error) {
 	out := new(VoteCount)
-	err := c.cc.Invoke(ctx, "/upvote.UserManagement/GetVotes", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/upvote.UpvoteService/GetVotes", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *userManagementClient) Vote(ctx context.Context, in *VotePayload, opts ...grpc.CallOption) (*VoteCount, error) {
+func (c *upvoteServiceClient) Vote(ctx context.Context, in *VotePayload, opts ...grpc.CallOption) (*VoteCount, error) {
 	out := new(VoteCount)
-	err := c.cc.Invoke(ctx, "/upvote.UserManagement/Vote", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/upvote.UpvoteService/Vote", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// UserManagementServer is the server API for UserManagement service.
-// All implementations must embed UnimplementedUserManagementServer
+// UpvoteServiceServer is the server API for UpvoteService service.
+// All implementations must embed UnimplementedUpvoteServiceServer
 // for forward compatibility
-type UserManagementServer interface {
+type UpvoteServiceServer interface {
 	GetVotes(context.Context, *Resource) (*VoteCount, error)
 	Vote(context.Context, *VotePayload) (*VoteCount, error)
-	mustEmbedUnimplementedUserManagementServer()
+	mustEmbedUnimplementedUpvoteServiceServer()
 }
 
-// UnimplementedUserManagementServer must be embedded to have forward compatible implementations.
-type UnimplementedUserManagementServer struct {
+// UnimplementedUpvoteServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedUpvoteServiceServer struct {
 }
 
-func (UnimplementedUserManagementServer) GetVotes(context.Context, *Resource) (*VoteCount, error) {
+func (UnimplementedUpvoteServiceServer) GetVotes(context.Context, *Resource) (*VoteCount, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetVotes not implemented")
 }
-func (UnimplementedUserManagementServer) Vote(context.Context, *VotePayload) (*VoteCount, error) {
+func (UnimplementedUpvoteServiceServer) Vote(context.Context, *VotePayload) (*VoteCount, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Vote not implemented")
 }
-func (UnimplementedUserManagementServer) mustEmbedUnimplementedUserManagementServer() {}
+func (UnimplementedUpvoteServiceServer) mustEmbedUnimplementedUpvoteServiceServer() {}
 
-// UnsafeUserManagementServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to UserManagementServer will
+// UnsafeUpvoteServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to UpvoteServiceServer will
 // result in compilation errors.
-type UnsafeUserManagementServer interface {
-	mustEmbedUnimplementedUserManagementServer()
+type UnsafeUpvoteServiceServer interface {
+	mustEmbedUnimplementedUpvoteServiceServer()
 }
 
-func RegisterUserManagementServer(s grpc.ServiceRegistrar, srv UserManagementServer) {
-	s.RegisterService(&UserManagement_ServiceDesc, srv)
+func RegisterUpvoteServiceServer(s grpc.ServiceRegistrar, srv UpvoteServiceServer) {
+	s.RegisterService(&UpvoteService_ServiceDesc, srv)
 }
 
-func _UserManagement_GetVotes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _UpvoteService_GetVotes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Resource)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserManagementServer).GetVotes(ctx, in)
+		return srv.(UpvoteServiceServer).GetVotes(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/upvote.UserManagement/GetVotes",
+		FullMethod: "/upvote.UpvoteService/GetVotes",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserManagementServer).GetVotes(ctx, req.(*Resource))
+		return srv.(UpvoteServiceServer).GetVotes(ctx, req.(*Resource))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserManagement_Vote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _UpvoteService_Vote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(VotePayload)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserManagementServer).Vote(ctx, in)
+		return srv.(UpvoteServiceServer).Vote(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/upvote.UserManagement/Vote",
+		FullMethod: "/upvote.UpvoteService/Vote",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserManagementServer).Vote(ctx, req.(*VotePayload))
+		return srv.(UpvoteServiceServer).Vote(ctx, req.(*VotePayload))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// UserManagement_ServiceDesc is the grpc.ServiceDesc for UserManagement service.
+// UpvoteService_ServiceDesc is the grpc.ServiceDesc for UpvoteService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var UserManagement_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "upvote.UserManagement",
-	HandlerType: (*UserManagementServer)(nil),
+var UpvoteService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "upvote.UpvoteService",
+	HandlerType: (*UpvoteServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "GetVotes",
-			Handler:    _UserManagement_GetVotes_Handler,
+			Handler:    _UpvoteService_GetVotes_Handler,
 		},
 		{
 			MethodName: "Vote",
-			Handler:    _UserManagement_Vote_Handler,
+			Handler:    _UpvoteService_Vote_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
