@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package thread;
+
+import "user.proto";
+
+option go_package = "/thread_service;thread_service";
+
+service ThreadService {
+  rpc GetThread(GetThreadRequest) returns (Thread) {}
+  rpc CreateThread(CreateThreadRequest) returns (Thread) {}
+}
+
+message Thread {
+  int32 id = 1;
+  string title = 2;
+  user.User owner = 3;
+  bool archived = 4;
+  string description = 5;
+}
+
+message GetThreadRequest {
+  int32 threadId = 1;
+}
+
+message CreateThreadRequest {
+  string title = 1;
+  user.User owner = 2;
+  string description = 4;
+}
+

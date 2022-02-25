@@ -9,7 +9,7 @@ import (
 	"os/signal"
 	"time"
 
-	upvote "github.com/leonardo5621/govote/upvote_pb"
+	upvote "github.com/leonardo5621/govote/upvote_service"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"

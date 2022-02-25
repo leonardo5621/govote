@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package firm;
+
+import "user.proto";
+
+option go_package = "/firm_service;firm_service";
+
+service FirmService {
+  rpc GetFirm(GetFirmRequest) returns (Firm) {}
+  rpc CreateFirm(CreateFirmRequest) returns (Firm) {}
+}
+
+message Firm {
+  int32 id = 1;
+  string name = 2;
+  user.User owner = 3;
+  bool enabled = 4;
+}
+
+message GetFirmRequest {
+  int32 firmId = 1;
+}
+
+message CreateFirmRequest {
+  string name = 1;
+  user.User owner = 2;
+  bool enabled = 3;
+}
+
