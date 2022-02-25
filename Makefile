@@ -10,6 +10,14 @@ create_user_service:
 	protoc --proto_path=protobuffers protobuffers/user.proto --go_out=.
 	protoc --proto_path=protobuffers protobuffers/user.proto --go-grpc_out=.
 
+create_user_service_test:
+	protoc -I . --grpc-gateway_out user_service \
+			--grpc-gateway_opt logtostderr=true \
+			--grpc-gateway_opt paths=source_relative \
+			./protobuffers/user.proto
+	mv user_service/protobuffers/user.* user_service
+	rm -r user_service/protobuffers
+
 create_thread_service:
 	protoc --proto_path=protobuffers protobuffers/thread.proto --go_out=.
 	protoc --proto_path=protobuffers protobuffers/thread.proto --go-grpc_out=.

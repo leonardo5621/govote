@@ -4,16 +4,23 @@ package user;
 
 option go_package = "/user_service;user_service";
 
+import "google/api/annotations.proto";
+
 service UserService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
-  rpc CreateUser(CreateUserRequest) returns (User) {}
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {
+    option (google.api.http) = {
+          post: "/user"
+          body: "*"
+    };
+  }
 }
 
 message User {
   int32 id = 1;
   string firstName = 2;
   string lastName = 3;
-  string emailAddress = 4;
+  string email = 4;
   bool activated = 5;
 }
 
@@ -21,13 +28,14 @@ message GetUserRequest {
   int32 userId = 1;
 }
 
+message CreateUserRequest {
+  User user = 1;
+}
+
 message GetUserResponse {
   repeated User user = 1;
 }
 
-message CreateUserRequest {
-  string firstName = 1;
-  string lastName = 2;
-  string emailAddress = 3;
-  bool activated = 4;
+message CreateUserResponse {
+  User user = 1;
 }
