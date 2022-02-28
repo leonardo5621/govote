@@ -8,59 +8,25 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"encoding/json"
-	"time"
+	//"time"
+	//"github.com/leonardo5621/govote/orm"
 
 	user_service "github.com/leonardo5621/govote/user_service"
+	"github.com/leonardo5621/govote/connect_db"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	//"go.mongodb.org/mongo-driver/mongo/options"
+	//"go.mongodb.org/mongo-driver/bson/primitive"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/davecgh/go-spew/spew"
+	//"github.com/davecgh/go-spew/spew"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/status"
-	"google.golang.org/grpc/codes"
+	//"google.golang.org/grpc/status"
+	//"google.golang.org/grpc/codes"
 )
 
 const (
 	port = ":5005"
 )
-
-var client *mongo.Client
-var mongoCtx context.Context
-
-type UserServer struct {
-	user_service.UnimplementedUserServiceServer
-}
-
-func (s *UserServer) CreateUser(ctx context.Context, req *user_service.CreateUserRequest) (*user_service.CreateUserResponse, error) {
-	userPayload := req.GetUser()
-	user := user_service.UserModel {
-		FirstName: userPayload.GetFirstName(),
-		LastName: userPayload.GetLastName(),
-		Email: userPayload.GetEmail(),
-		Activated: userPayload.GetActivated(),
-	}
-	spew.Dump(user)
-	collection := client.Database("upvote").Collection("user")
-	fmt.Println("Connection to DB")
-	res, err := collection.InsertOne(mongoCtx, user)
-	if err != nil {
-		return nil, status.Errorf(
-			codes.Internal,
-			fmt.Sprintf("Internal error: %v", err),
-		)
-	}
-	oid := res.InsertedID.(primitive.ObjectID)
-	fmt.Println(oid.Hex())
-	fmt.Println("Document inserted")
-	jsonMongoModel, err := json.Marshal(user)
-	userResponseMessage := new(user_service.User)
-	json.Unmarshal(jsonMongoModel, userResponseMessage)
-	userResponseMessage.Id = oid.Hex()
-	return &user_service.CreateUserResponse{User: userResponseMessage}, nil
-}
 
 var collection *mongo.Collection
 
@@ -92,7 +58,7 @@ func runHTTPreverseProxy () {
 func main() {
 	opts := []grpc.ServerOption{}
 	server := grpc.NewServer(opts...)
-	user_service.RegisterUserServiceServer(server, &UserServer{})
+	user_service.RegisterUserServiceServer(server, &user_service.UserServer{})
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -107,26 +73,26 @@ func main() {
 	}()
 
 	
-	mongoCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	//mongoCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	//defer cancel()
 	go runHTTPreverseProxy()
-
-	credentials := options.Credential{
-		Username: "root",
-		Password: "example",
-	}
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017").SetAuth(credentials)
-	client, err = mongo.Connect(mongoCtx, clientOptions)
-	if err != nil {
-		log.Fatalf("Mongo DB connection failed: %v", err)
-	}
+	go connect_db.OpenMongoDBconnection()
+	// credentials := options.Credential{
+	// 	Username: "root",
+	// 	Password: "example",
+	// }
+	// clientOptions := options.Client().ApplyURI("mongodb://localhost:27017").SetAuth(credentials)
+	// client, err = mongo.Connect(mongoCtx, clientOptions)
+	// if err != nil {
+	// 	log.Fatalf("Mongo DB connection failed: %v", err)
+	// }
 
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt)
 
 	<-ch
 	fmt.Println("Closing connection")
-	if errDisconnect := client.Disconnect(mongoCtx); errDisconnect != nil {
+	if errDisconnect := connect_db.Client.Disconnect(connect_db.MongoCtx); errDisconnect != nil {
 		log.Fatalf("Mongo DB disconnection failed: %v", err)
 	}
 	server.Stop()
