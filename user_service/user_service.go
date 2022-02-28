@@ -4,7 +4,6 @@ import 	(
 	"fmt"
 	"context"
 	"encoding/json"
-	"github.com/leonardo5621/govote/orm"
 	"github.com/leonardo5621/govote/connect_db"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -48,23 +47,36 @@ func (s *UserServer) GetUser(ctx context.Context, req *GetUserRequest) (*GetUser
 
 func (s *UserServer) CreateUser(ctx context.Context, req *CreateUserRequest) (*CreateUserResponse, error) {
 	userPayload := req.GetUser()
+	fmt.Println(userPayload.GetLastName())
+	validationError := userPayload.ValidateAll()
+	if validationError != nil {
+		return nil, status.Errorf(
+			codes.Internal,
+			fmt.Sprintf("Invalid parameters: %v", validationError),
+		)
+	}
 	user := UserModel {
 		FirstName: userPayload.GetFirstName(),
 		LastName: userPayload.GetLastName(),
 		Email: userPayload.GetEmail(),
-		Activated: userPayload.GetActivated(),
+		Activated: true,
 	}
-	 
-	userModel := orm.ORModel {
-		ModelName: "user",
-		DatabaseName: "upvote",
-	}
-	userId, err := userModel.Create(user, connect_db.Client, ctx)
+	fmt.Println("Here")
+	collection := connect_db.Client.Database("upvote").Collection("user")
+	res, err := collection.InsertOne(connect_db.MongoCtx, user)
+	fmt.Println("Here")
 	if err != nil {
 		return nil, status.Errorf(
 			codes.Internal,
 			fmt.Sprintf("Internal error: %v", err),
 		)
 	}
-	return &CreateUserResponse{Id: userId}, nil
+	userId := res.InsertedID.(primitive.ObjectID)
+	if err != nil {
+		return nil, status.Errorf(
+			codes.Internal,
+			fmt.Sprintf("Internal error: %v", err),
+		)
+	}
+	return &CreateUserResponse{Id: userId.Hex()}, nil
 }
