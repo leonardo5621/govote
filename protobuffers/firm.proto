@@ -2,29 +2,45 @@ syntax = "proto3";
 
 package firm;
 
-import "user.proto";
+import "google/api/annotations.proto";
 
 option go_package = "/firm_service;firm_service";
 
 service FirmService {
-  rpc GetFirm(GetFirmRequest) returns (Firm) {}
-  rpc CreateFirm(CreateFirmRequest) returns (Firm) {}
+  rpc GetFirm(GetFirmRequest) returns (GetFirmResponse) {
+    option (google.api.http) = {
+      get: "/firm/{firmId}"
+    };
+  }
+  rpc CreateFirm(CreateFirmRequest) returns (CreateFirmResponse) {
+    option (google.api.http) = {
+      post: "/firm"
+      body: "*"
+};
+  };
 }
 
 message Firm {
-  int32 id = 1;
+  string id = 1;
   string name = 2;
-  user.User owner = 3;
-  bool enabled = 4;
+  string ownerUserId = 3;
+  string ownerName = 4;
+  bool enabled = 5;
 }
 
 message GetFirmRequest {
-  int32 firmId = 1;
+  string firmId = 1;
+}
+
+message GetFirmResponse {
+  Firm firm = 1;
 }
 
 message CreateFirmRequest {
-  string name = 1;
-  user.User owner = 2;
-  bool enabled = 3;
+  Firm firm = 1;
+}
+
+message CreateFirmResponse {
+  string firmId = 1;
 }
 

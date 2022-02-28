@@ -18,8 +18,8 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ThreadServiceClient interface {
-	GetThread(ctx context.Context, in *GetThreadRequest, opts ...grpc.CallOption) (*Thread, error)
-	CreateThread(ctx context.Context, in *CreateThreadRequest, opts ...grpc.CallOption) (*Thread, error)
+	GetThread(ctx context.Context, in *GetThreadRequest, opts ...grpc.CallOption) (*GetThreadResponse, error)
+	CreateThread(ctx context.Context, in *CreateThreadRequest, opts ...grpc.CallOption) (*CreateThreadResponse, error)
 }
 
 type threadServiceClient struct {
@@ -30,8 +30,8 @@ func NewThreadServiceClient(cc grpc.ClientConnInterface) ThreadServiceClient {
 	return &threadServiceClient{cc}
 }
 
-func (c *threadServiceClient) GetThread(ctx context.Context, in *GetThreadRequest, opts ...grpc.CallOption) (*Thread, error) {
-	out := new(Thread)
+func (c *threadServiceClient) GetThread(ctx context.Context, in *GetThreadRequest, opts ...grpc.CallOption) (*GetThreadResponse, error) {
+	out := new(GetThreadResponse)
 	err := c.cc.Invoke(ctx, "/thread.ThreadService/GetThread", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -39,8 +39,8 @@ func (c *threadServiceClient) GetThread(ctx context.Context, in *GetThreadReques
 	return out, nil
 }
 
-func (c *threadServiceClient) CreateThread(ctx context.Context, in *CreateThreadRequest, opts ...grpc.CallOption) (*Thread, error) {
-	out := new(Thread)
+func (c *threadServiceClient) CreateThread(ctx context.Context, in *CreateThreadRequest, opts ...grpc.CallOption) (*CreateThreadResponse, error) {
+	out := new(CreateThreadResponse)
 	err := c.cc.Invoke(ctx, "/thread.ThreadService/CreateThread", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -52,8 +52,8 @@ func (c *threadServiceClient) CreateThread(ctx context.Context, in *CreateThread
 // All implementations must embed UnimplementedThreadServiceServer
 // for forward compatibility
 type ThreadServiceServer interface {
-	GetThread(context.Context, *GetThreadRequest) (*Thread, error)
-	CreateThread(context.Context, *CreateThreadRequest) (*Thread, error)
+	GetThread(context.Context, *GetThreadRequest) (*GetThreadResponse, error)
+	CreateThread(context.Context, *CreateThreadRequest) (*CreateThreadResponse, error)
 	mustEmbedUnimplementedThreadServiceServer()
 }
 
@@ -61,10 +61,10 @@ type ThreadServiceServer interface {
 type UnimplementedThreadServiceServer struct {
 }
 
-func (UnimplementedThreadServiceServer) GetThread(context.Context, *GetThreadRequest) (*Thread, error) {
+func (UnimplementedThreadServiceServer) GetThread(context.Context, *GetThreadRequest) (*GetThreadResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetThread not implemented")
 }
-func (UnimplementedThreadServiceServer) CreateThread(context.Context, *CreateThreadRequest) (*Thread, error) {
+func (UnimplementedThreadServiceServer) CreateThread(context.Context, *CreateThreadRequest) (*CreateThreadResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateThread not implemented")
 }
 func (UnimplementedThreadServiceServer) mustEmbedUnimplementedThreadServiceServer() {}
@@ -133,5 +133,5 @@ var ThreadService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "thread.proto",
+	Metadata: "protobuffers/thread.proto",
 }

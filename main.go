@@ -8,20 +8,15 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	//"time"
-	//"github.com/leonardo5621/govote/orm"
 
-	user_service "github.com/leonardo5621/govote/user_service"
+	"github.com/leonardo5621/govote/user_service"
+ 	"github.com/leonardo5621/govote/firm_service"
+	"github.com/leonardo5621/govote/thread_service"
 	"github.com/leonardo5621/govote/connect_db"
 	"go.mongodb.org/mongo-driver/mongo"
-	//"go.mongodb.org/mongo-driver/mongo/options"
-	//"go.mongodb.org/mongo-driver/bson/primitive"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	//"github.com/davecgh/go-spew/spew"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc"
-	//"google.golang.org/grpc/status"
-	//"google.golang.org/grpc/codes"
 )
 
 const (
@@ -36,11 +31,18 @@ func runHTTPreverseProxy () {
   defer cancel()
 
   // Register gRPC server endpoint
-  // Note: Make sure the gRPC server is running properly and accessible
   mux := runtime.NewServeMux()
   opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
   err := user_service.RegisterUserServiceHandlerFromEndpoint(ctx, mux,  "localhost:5005", opts)
   if err != nil {
+    log.Fatalf("Server registration failed: %v", err)
+  }
+	firmRegisterError := firm_service.RegisterFirmServiceHandlerFromEndpoint(ctx, mux,  "localhost:5005", opts)
+  if firmRegisterError != nil {
+    log.Fatalf("Server registration failed: %v", err)
+  }
+	threadRegisterError := thread_service.RegisterThreadServiceHandlerFromEndpoint(ctx, mux,  "localhost:5005", opts)
+  if threadRegisterError != nil {
     log.Fatalf("Server registration failed: %v", err)
   }
 
@@ -59,6 +61,8 @@ func main() {
 	opts := []grpc.ServerOption{}
 	server := grpc.NewServer(opts...)
 	user_service.RegisterUserServiceServer(server, &user_service.UserServer{})
+	firm_service.RegisterFirmServiceServer(server, &firm_service.FirmServer{})
+	thread_service.RegisterThreadServiceServer(server, &thread_service.ThreadServer{})
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -72,20 +76,8 @@ func main() {
 		}
 	}()
 
-	
-	//mongoCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	//defer cancel()
 	go runHTTPreverseProxy()
 	go connect_db.OpenMongoDBconnection()
-	// credentials := options.Credential{
-	// 	Username: "root",
-	// 	Password: "example",
-	// }
-	// clientOptions := options.Client().ApplyURI("mongodb://localhost:27017").SetAuth(credentials)
-	// client, err = mongo.Connect(mongoCtx, clientOptions)
-	// if err != nil {
-	// 	log.Fatalf("Mongo DB connection failed: %v", err)
-	// }
 
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt)

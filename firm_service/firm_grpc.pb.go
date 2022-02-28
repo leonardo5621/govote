@@ -18,8 +18,8 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type FirmServiceClient interface {
-	GetFirm(ctx context.Context, in *GetFirmRequest, opts ...grpc.CallOption) (*Firm, error)
-	CreateFirm(ctx context.Context, in *CreateFirmRequest, opts ...grpc.CallOption) (*Firm, error)
+	GetFirm(ctx context.Context, in *GetFirmRequest, opts ...grpc.CallOption) (*GetFirmResponse, error)
+	CreateFirm(ctx context.Context, in *CreateFirmRequest, opts ...grpc.CallOption) (*CreateFirmResponse, error)
 }
 
 type firmServiceClient struct {
@@ -30,8 +30,8 @@ func NewFirmServiceClient(cc grpc.ClientConnInterface) FirmServiceClient {
 	return &firmServiceClient{cc}
 }
 
-func (c *firmServiceClient) GetFirm(ctx context.Context, in *GetFirmRequest, opts ...grpc.CallOption) (*Firm, error) {
-	out := new(Firm)
+func (c *firmServiceClient) GetFirm(ctx context.Context, in *GetFirmRequest, opts ...grpc.CallOption) (*GetFirmResponse, error) {
+	out := new(GetFirmResponse)
 	err := c.cc.Invoke(ctx, "/firm.FirmService/GetFirm", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -39,8 +39,8 @@ func (c *firmServiceClient) GetFirm(ctx context.Context, in *GetFirmRequest, opt
 	return out, nil
 }
 
-func (c *firmServiceClient) CreateFirm(ctx context.Context, in *CreateFirmRequest, opts ...grpc.CallOption) (*Firm, error) {
-	out := new(Firm)
+func (c *firmServiceClient) CreateFirm(ctx context.Context, in *CreateFirmRequest, opts ...grpc.CallOption) (*CreateFirmResponse, error) {
+	out := new(CreateFirmResponse)
 	err := c.cc.Invoke(ctx, "/firm.FirmService/CreateFirm", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -52,8 +52,8 @@ func (c *firmServiceClient) CreateFirm(ctx context.Context, in *CreateFirmReques
 // All implementations must embed UnimplementedFirmServiceServer
 // for forward compatibility
 type FirmServiceServer interface {
-	GetFirm(context.Context, *GetFirmRequest) (*Firm, error)
-	CreateFirm(context.Context, *CreateFirmRequest) (*Firm, error)
+	GetFirm(context.Context, *GetFirmRequest) (*GetFirmResponse, error)
+	CreateFirm(context.Context, *CreateFirmRequest) (*CreateFirmResponse, error)
 	mustEmbedUnimplementedFirmServiceServer()
 }
 
@@ -61,10 +61,10 @@ type FirmServiceServer interface {
 type UnimplementedFirmServiceServer struct {
 }
 
-func (UnimplementedFirmServiceServer) GetFirm(context.Context, *GetFirmRequest) (*Firm, error) {
+func (UnimplementedFirmServiceServer) GetFirm(context.Context, *GetFirmRequest) (*GetFirmResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFirm not implemented")
 }
-func (UnimplementedFirmServiceServer) CreateFirm(context.Context, *CreateFirmRequest) (*Firm, error) {
+func (UnimplementedFirmServiceServer) CreateFirm(context.Context, *CreateFirmRequest) (*CreateFirmResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateFirm not implemented")
 }
 func (UnimplementedFirmServiceServer) mustEmbedUnimplementedFirmServiceServer() {}
@@ -133,5 +133,5 @@ var FirmService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "firm.proto",
+	Metadata: "protobuffers/firm.proto",
 }

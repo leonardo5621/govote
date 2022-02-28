@@ -2,30 +2,50 @@ syntax = "proto3";
 
 package thread;
 
-import "user.proto";
+import "google/api/annotations.proto";
 
 option go_package = "/thread_service;thread_service";
 
+
+
 service ThreadService {
-  rpc GetThread(GetThreadRequest) returns (Thread) {}
-  rpc CreateThread(CreateThreadRequest) returns (Thread) {}
+  rpc GetThread(GetThreadRequest) returns (GetThreadResponse) {
+    option (google.api.http) = {
+      get: "/thread/{threadId}"
+    };
+  }
+  rpc CreateThread(CreateThreadRequest) returns (CreateThreadResponse) {
+    option (google.api.http) = {
+      post: "/thread",
+      body: "*"
+    };
+  }
 }
 
 message Thread {
-  int32 id = 1;
+  string id = 1;
   string title = 2;
-  user.User owner = 3;
+  string ownerUserId = 3;
   bool archived = 4;
   string description = 5;
+  string ownerUserName = 6;
+  string firmId = 7;
+  string firmName = 8;
 }
 
 message GetThreadRequest {
-  int32 threadId = 1;
+  string threadId = 1;
+}
+
+message GetThreadResponse {
+  Thread thread = 1;
 }
 
 message CreateThreadRequest {
-  string title = 1;
-  user.User owner = 2;
-  string description = 4;
+  Thread thread = 1;
+}
+
+message CreateThreadResponse {
+  string threadId = 1;
 }
 
