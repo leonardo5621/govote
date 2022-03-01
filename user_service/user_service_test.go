@@ -2,69 +2,42 @@ package user_service
 
 import (
 	"testing"
-	"fmt"
-	"log"
-	"context"
-	"net"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/test/bufconn"
 )
 
-const bufSize = 1024 * 1024
-
-var lis *bufconn.Listener
-
-func bufDialer(context.Context, string) (net.Conn, error) {
-	return lis.Dial()
+func TestCreationvalidation(t *testing.T) {
+	user := User{
+		FirstName: "tester",
+		LastName: "tester last",
+		Email: "testemail",
+	}
+	validationErrEmail := user.Validate()
+	if validationErrEmail == nil {
+		t.Error("Email validation failed")
+	}
+	user2 := User{
+		FirstName: "",
+		LastName: "tester last",
+		Email: "test@email.com",
+	}
+	validationErrName := user2.Validate()
+	if validationErrName == nil {
+		t.Error("First name validation failed")
+	}
 }
 
-func init() {
-	lis = bufconn.Listen(bufSize)
-	s := grpc.NewServer()
-	RegisterUserServiceServer(s, &UserServer{})
-	go func() {
-			if err := s.Serve(lis); err != nil {
-					log.Fatalf("Server exited with error: %v", err)
-			}
-	}()
+func TestGetvalidation(t *testing.T) {
+	userReq := &GetUserRequest{
+		UserId: "12323@$!!",
+	}
+	idValidation := userReq.Validate()
+	if idValidation == nil {
+		t.Error("Id validation failed, special characters passed")
+	}
+	userReqCorrect := &GetUserRequest{
+		UserId: "123232wrsedSASF",
+	}
+	idValidationErr := userReqCorrect.Validate()
+	if idValidationErr != nil {
+		t.Errorf("Id validation failed, allowed characters were not recognized, %v", idValidationErr)
+	}
 }
-
-func TestUser(t *testing.T) {
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithInsecure())
-	if err != nil {
-			t.Fatalf("Failed to dial bufnet: %v", err)
-	}
-	defer conn.Close()
-	req := &CreateUserRequest{
-		User: &User{
-			FirstName: "Dummy",
-			LastName: "Grande Dummy",
-			Email: "dummy@dummy.com",
-		},
-	}
-	client := NewUserServiceClient(conn)
-  res, err := client.CreateUser(ctx, req)
-	if err != nil {
-		t.Errorf("User creation failed %v", err)
-	}
-	t.Log(res.Id)
-	fmt.Println("Closing connection")
-}
-
-
-// func TestSayHello(t *testing.T) {
-//     ctx := context.Background()
-//     conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithInsecure())
-//     if err != nil {
-//         t.Fatalf("Failed to dial bufnet: %v", err)
-//     }
-//     defer conn.Close()
-//     client := pb.NewGreeterClient(conn)
-//     resp, err := client.SayHello(ctx, &pb.HelloRequest{"Dr. Seuss"})
-//     if err != nil {
-//         t.Fatalf("SayHello failed: %v", err)
-//     }
-//     log.Printf("Response: %+v", resp)
-//     // Test for output here.
-// }

@@ -243,7 +243,16 @@ func (m *GetUserRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for UserId
+	if !_GetUserRequest_UserId_Pattern.MatchString(m.GetUserId()) {
+		err := GetUserRequestValidationError{
+			field:  "UserId",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9]*$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return GetUserRequestMultiError(errors)
@@ -322,6 +331,8 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetUserRequestValidationError{}
+
+var _GetUserRequest_UserId_Pattern = regexp.MustCompile("^[A-Za-z0-9]*$")
 
 // Validate checks the field values on CreateUserRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the

@@ -3,6 +3,8 @@ syntax = "proto3";
 package firm;
 
 import "google/api/annotations.proto";
+import "validate/validate.proto";
+
 
 option go_package = "/firm_service;firm_service";
 
@@ -22,14 +24,14 @@ service FirmService {
 
 message Firm {
   string id = 1;
-  string name = 2;
-  string ownerUserId = 3;
-  string ownerName = 4;
+  string name = 2 [(validate.rules).string = { min_len: 1, max_len: 100}];
+  string ownerUserId = 3 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+  string ownerUserName = 4 [(validate.rules).string = { min_len: 1, max_len: 100}];
   bool enabled = 5;
 }
 
 message GetFirmRequest {
-  string firmId = 1;
+  string firmId = 1 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
 }
 
 message GetFirmResponse {

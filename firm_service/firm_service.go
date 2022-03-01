@@ -1,15 +1,11 @@
 package firm_service
 
 import 	(
-	"fmt"
 	"context"
-	"encoding/json"
-	"github.com/leonardo5621/govote/user_service"
+	//"encoding/json"
+	"github.com/leonardo5621/govote/utilities"
 	"github.com/leonardo5621/govote/orm"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"google.golang.org/grpc/status"
-	"google.golang.org/grpc/codes"
 )
 
 type FirmModel struct {
@@ -26,55 +22,34 @@ type FirmServer struct {
 
 func (s *FirmServer) GetFirm(ctx context.Context, req *GetFirmRequest) (*GetFirmResponse, error) {
 	id := req.GetFirmId()
-	searchFirm := new(FirmModel)
-	oid, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("Could not convert to ObjectId: %v", err))
-	}
 	collection := orm.OrmSession.Client.Database("upvote").Collection("firm")
-	res := collection.FindOne(ctx, bson.M{"_id": oid})
-	if decodeErr := res.Decode(&searchFirm); decodeErr != nil {
-		return nil, status.Errorf(codes.NotFound, fmt.Sprintf("Could not find record with Object Id %s: %v", oid, err))
-	}
-	modelToAssert, err := json.Marshal(searchFirm)
-	responseModel := new(Firm)
+	firm, err := orm.FindDocument(id, collection, ctx, FirmModel{})
+	responseModel, err := orm.ConvertToEquivalentStruct(firm, Firm{})
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("Could not convert to Json: %v", err))
+		return nil, utilities.ReturnInternalError(err)
 	}
-	json.Unmarshal(modelToAssert, &responseModel)
-	return &GetFirmResponse{Firm: responseModel}, nil
+	return &GetFirmResponse{Firm: responseModel.(*Firm)}, nil
 
 }
 
 func (s *FirmServer) CreateFirm(ctx context.Context, req *CreateFirmRequest) (*CreateFirmResponse, error) {
 	firmPayload := req.GetFirm()
-	ownerUserId, err := primitive.ObjectIDFromHex(firmPayload.GetOwnerUserId())
-	firm := FirmModel {
-		Name: firmPayload.GetName(),
-		OwnerUserId: &ownerUserId,
-		Enabled: firmPayload.GetEnabled(),
+	validationError := firmPayload.ValidateAll()
+	if validationError != nil {
+		return nil, utilities.ReturnValidationError(validationError)
 	}
-	userInfo := user_service.UserModel{}
-	userCollection := orm.OrmSession.Client.Database("upvote").Collection("user")
-	res := userCollection.FindOne(ctx, bson.M{"_id": ownerUserId})
-	if decodeErr := res.Decode(&userInfo); decodeErr != nil {
-		return nil, status.Errorf(codes.NotFound, fmt.Sprintf("Could not find record with Object Id %s: %v", ownerUserId, decodeErr))
-	}
-	firmCollection := orm.OrmSession.Client.Database("upvote").Collection("firm")
-	firm.OwnerUserName = userInfo.LastName
-	firmInsertResponse, err := firmCollection.InsertOne(ctx, firm)
+	_, err := primitive.ObjectIDFromHex(firmPayload.GetOwnerUserId())
 	if err != nil {
-		return nil, status.Errorf(
-			codes.Internal,
-			fmt.Sprintf("Internal error: %v", err),
-		)
+		return nil, utilities.ReturnValidationError(err)
 	}
-	firmId := firmInsertResponse.InsertedID.(primitive.ObjectID)
+	firm, err := orm.ConvertToEquivalentStruct(firmPayload, FirmModel{})
 	if err != nil {
-		return nil, status.Errorf(
-			codes.Internal,
-			fmt.Sprintf("Internal error: %v", err),
-		)
+		return nil, utilities.ReturnInternalError(err)
 	}
-	return &CreateFirmResponse{FirmId: firmId.Hex()}, nil
+	collection := orm.OrmSession.Client.Database("upvote").Collection("firm")
+	firmId, err := orm.Create(firm, collection, ctx)
+	if err != nil {
+		return nil, utilities.ReturnInternalError(err)
+	}
+	return &CreateFirmResponse{FirmId: firmId}, nil
 }

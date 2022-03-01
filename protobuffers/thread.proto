@@ -3,6 +3,7 @@ syntax = "proto3";
 package thread;
 
 import "google/api/annotations.proto";
+import "validate/validate.proto";
 
 option go_package = "/thread_service;thread_service";
 
@@ -24,12 +25,12 @@ service ThreadService {
 
 message Thread {
   string id = 1;
-  string title = 2;
-  string ownerUserId = 3;
+  string title = 2 [(validate.rules).string = { min_len: 5, max_len: 150}];
+  string ownerUserId = 3 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
   bool archived = 4;
-  string description = 5;
+  string description = 5 [(validate.rules).string = { max_len: 1000}];
   string ownerUserName = 6;
-  string firmId = 7;
+  string firmId = 7 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
   string firmName = 8;
 }
 

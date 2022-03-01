@@ -1,14 +1,10 @@
 package user_service
 
 import 	(
-	"fmt"
 	"context"
-	"encoding/json"
+	"github.com/leonardo5621/govote/utilities"
 	"github.com/leonardo5621/govote/orm"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"google.golang.org/grpc/status"
-	"google.golang.org/grpc/codes"
 )
 
 type UserModel struct {
@@ -25,24 +21,16 @@ type UserServer struct {
 
 func (s *UserServer) GetUser(ctx context.Context, req *GetUserRequest) (*GetUserResponse, error) {
 	id := req.GetUserId()
-	searchUser := new(UserModel)
-	oid, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("Could not convert to ObjectId: %v", err))
-	}
 	collection := orm.OrmSession.Client.Database("upvote").Collection("user")
-	res := collection.FindOne(ctx, bson.M{"_id": oid})
-	if decodeErr := res.Decode(&searchUser); decodeErr != nil {
-		return nil, status.Errorf(codes.NotFound, fmt.Sprintf("Could not find record with Object Id %s: %v", oid, err))
-	}
-	
-	modelToAssert, err := json.Marshal(searchUser)
-	responseModel := new(User)
+	user, err := orm.FindDocument(id, collection, ctx, UserModel{})
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("Conversion failed: %v", err))
+		return nil, utilities.ReturnInternalError(err)
 	}
-	json.Unmarshal(modelToAssert, &responseModel)
-	return &GetUserResponse{User: responseModel}, nil
+	responseModel, err := orm.ConvertToEquivalentStruct(user, User{})
+	if err != nil {
+		return nil, utilities.ReturnInternalError(err)
+	}
+	return &GetUserResponse{User: responseModel.(*User)}, nil
 
 }
 
@@ -50,25 +38,16 @@ func (s *UserServer) CreateUser(ctx context.Context, req *CreateUserRequest) (*C
 	userPayload := req.GetUser()
 	validationError := userPayload.ValidateAll()
 	if validationError != nil {
-		return nil, status.Errorf(
-			codes.InvalidArgument,
-			fmt.Sprintf("Invalid parameters: %v", validationError),
-		)
+		return nil, utilities.ReturnValidationError(validationError)
 	}
 	user, err := orm.ConvertToEquivalentStruct(userPayload, UserModel{})
 	if err != nil {
-		return nil, status.Errorf(
-			codes.Internal,
-			fmt.Sprintf("Internal Error: %v", err),
-		)
+		return nil, utilities.ReturnInternalError(err)
 	}
 	collection := orm.OrmSession.Client.Database("upvote").Collection("user")
 	userId, err := orm.Create(user, collection, ctx)
 	if err != nil {
-		return nil, status.Errorf(
-			codes.Internal,
-			fmt.Sprintf("Internal error: %v", err),
-		)
+		return nil, utilities.ReturnInternalError(err)
 	}
 	return &CreateUserResponse{Id: userId}, nil
 }
