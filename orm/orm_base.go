@@ -2,28 +2,46 @@ package orm;
 
 import (
 	"fmt"
+	"log"
+	"time"
 	"context"
-	//"reflect"
+	"encoding/json"
+	"reflect"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/codes"
-	//"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"github.com/davecgh/go-spew/spew"
 )
 
-type ORMBase interface {
-	FindByPk(id string, client *mongo.Client, mongoCtx context.Context) (interface{}, error)
-	Create(interface{}, *mongo.Client, context.Context) (string, error)
+type OrmDB struct {
+	Client *mongo.Client
 }
 
-type ORModel struct {
-	ModelName string;
-	DatabaseName string;
+var OrmSession *OrmDB
+
+func OpenMongoDBconnection() (*mongo.Client){
+	var err error
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	credentials := options.Credential{
+		Username: "root",
+		Password: "example",
+	}
+	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017").SetAuth(credentials)
+	Client, err := mongo.Connect(ctx, clientOptions)
+	OrmSession = &OrmDB {
+		Client: Client,
+	}
+	if err != nil {
+		log.Fatalf("Mongo DB connection failed: %v", err)
+	}
+	return Client
 }
 
-func (m ORModel) Create(model interface{}, client *mongo.Client, mongoCtx context.Context) (string, error) {
-	collection := client.Database(m.DatabaseName).Collection(m.ModelName)
-	res, err := collection.InsertOne(mongoCtx, model)
+func Create(model interface{}, collection DocumentInserter, ctx context.Context) (string, error) {
+	res, err := collection.InsertOne(ctx, model)
 	if err != nil {
 		return "", status.Errorf(
 			codes.Internal,
@@ -32,6 +50,25 @@ func (m ORModel) Create(model interface{}, client *mongo.Client, mongoCtx contex
 	}
 	stringId := res.InsertedID.(primitive.ObjectID)
 	return stringId.Hex(), nil
+}
+
+func ConvertToEquivalentStruct(initialStruct interface{}, targetStruct interface{}) (interface{}, error) {
+	targetStructPtr := reflect.New(reflect.TypeOf(targetStruct)).Interface()
+	marshalledRequest, err := json.Marshal(initialStruct)
+	spew.Dump(marshalledRequest)
+	if err != nil {
+		return nil, status.Errorf(
+			codes.Internal,
+			fmt.Sprintf("Internal error: %v", err),
+		)
+	}
+	json.Unmarshal(marshalledRequest, targetStructPtr)
+	return targetStructPtr, nil
+}
+
+type DocumentInserter interface {
+	InsertOne(ctx context.Context, document interface{},
+		opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error)
 }
 
 // func (m ORModel) FindByPk(searchedEntity interface{},  client *mongo.Client, mongoCtx context.Context) (interface{}, error) {

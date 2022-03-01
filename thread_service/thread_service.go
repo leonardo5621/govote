@@ -5,7 +5,6 @@ import 	(
 	"context"
 	"encoding/json"
 	"github.com/leonardo5621/govote/user_service"
-	"github.com/leonardo5621/govote/connect_db"
 	"github.com/leonardo5621/govote/orm"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -32,8 +31,8 @@ func (s *ThreadServer) GetThread(ctx context.Context, req *GetThreadRequest) (*G
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("Could not convert to ObjectId: %v", err))
 	}
-	collection := connect_db.Client.Database("upvote").Collection("thread")
-	res := collection.FindOne(connect_db.MongoCtx, bson.M{"_id": oid})
+	collection := orm.OrmSession.Client.Database("upvote").Collection("thread")
+	res := collection.FindOne(ctx, bson.M{"_id": oid})
 	if decodeErr := res.Decode(&searchThread); decodeErr != nil {
 		return nil, status.Errorf(codes.NotFound, fmt.Sprintf("Could not find record with Object Id %s: %v", oid, err))
 	}
@@ -49,16 +48,13 @@ func (s *ThreadServer) GetThread(ctx context.Context, req *GetThreadRequest) (*G
 
 func (s *ThreadServer) CreateThread(ctx context.Context, req *CreateThreadRequest) (*CreateThreadResponse, error) {
 	threadPayload := req.GetThread()
-	firm := ThreadModel {
+	thread := ThreadModel {
 		Title: threadPayload.GetTitle(),
 		Owner: threadPayload.GetOwner(),
 		Description: threadPayload.GetDescription(),
 	}
-	threadModel := orm.ORModel {
-		ModelName: "thread",
-		DatabaseName: "upvote",
-	}
-	threadId, err := threadModel.Create(firm, connect_db.Client, ctx)
+	collection := orm.OrmSession.Client.Database("upvote").Collection("user")
+	threadId, err := orm.Create(thread, collection, ctx)
 	if err != nil {
 		return nil, status.Errorf(
 			codes.Internal,

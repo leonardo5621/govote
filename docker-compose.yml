@@ -12,5 +12,17 @@ services:
       - 27017:27017
     volumes:
       - mongo_data:/data/db
+  mongo_test:
+    container_name: mongo_db_test
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: test
+    ports:
+      - 27018:27017
+    volumes:
+      - mongo_data_test:/data/db_test
 volumes:
   mongo_data:
+  mongo_data_test:

@@ -12,7 +12,7 @@ import (
 	"github.com/leonardo5621/govote/user_service"
  	"github.com/leonardo5621/govote/firm_service"
 	"github.com/leonardo5621/govote/thread_service"
-	"github.com/leonardo5621/govote/connect_db"
+	"github.com/leonardo5621/govote/orm"
 	"go.mongodb.org/mongo-driver/mongo"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc/credentials/insecure"
@@ -77,14 +77,14 @@ func main() {
 	}()
 
 	go runHTTPreverseProxy()
-	go connect_db.OpenMongoDBconnection()
+	client := orm.OpenMongoDBconnection()
 
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt)
 
 	<-ch
 	fmt.Println("Closing connection")
-	if errDisconnect := connect_db.Client.Disconnect(connect_db.MongoCtx); errDisconnect != nil {
+	if errDisconnect := client.Disconnect(context.Background()); errDisconnect != nil {
 		log.Fatalf("Mongo DB disconnection failed: %v", err)
 	}
 	server.Stop()
