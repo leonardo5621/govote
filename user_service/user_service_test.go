@@ -7,8 +7,8 @@ import (
 func TestCreationvalidation(t *testing.T) {
 	user := User{
 		FirstName: "tester",
-		LastName: "tester last",
-		Email: "testemail",
+		LastName:  "tester last",
+		Email:     "testemail",
 	}
 	validationErrEmail := user.Validate()
 	if validationErrEmail == nil {
@@ -16,8 +16,8 @@ func TestCreationvalidation(t *testing.T) {
 	}
 	user2 := User{
 		FirstName: "",
-		LastName: "tester last",
-		Email: "test@email.com",
+		LastName:  "tester last",
+		Email:     "test@email.com",
 	}
 	validationErrName := user2.Validate()
 	if validationErrName == nil {

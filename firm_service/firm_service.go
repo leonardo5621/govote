@@ -1,19 +1,19 @@
 package firm_service
 
-import 	(
+import (
 	"context"
 	//"encoding/json"
-	"github.com/leonardo5621/govote/utilities"
 	"github.com/leonardo5621/govote/orm"
+	"github.com/leonardo5621/govote/utilities"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type FirmModel struct {
-	Id *primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	Name string `json: "name" bson:"name,omnitempty"`
-	OwnerUserId *primitive.ObjectID `json: "ownerUserId" bson:"ownerUserId,omnitempty"`
-	OwnerUserName string `json: "ownerUserName" bson:"ownerUserName,omnitempty"`
-	Enabled bool `json: "enabled" bson:"enabled,omnitempty"`
+	Id            *primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	Name          string              `json: "name" bson:"name,omnitempty"`
+	OwnerUserId   *primitive.ObjectID `json: "ownerUserId" bson:"ownerUserId,omnitempty"`
+	OwnerUserName string              `json: "ownerUserName" bson:"ownerUserName,omnitempty"`
+	Enabled       bool                `json: "enabled" bson:"enabled,omnitempty"`
 }
 
 type FirmServer struct {

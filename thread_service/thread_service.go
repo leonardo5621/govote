@@ -1,22 +1,21 @@
 package thread_service
 
-import 	(
+import (
 	"context"
-	"github.com/leonardo5621/govote/utilities"
 	"github.com/leonardo5621/govote/orm"
+	"github.com/leonardo5621/govote/utilities"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type ThreadModel struct {
-	Id *primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	OwnerUserId *primitive.ObjectID `json:"ownerUserId" bson:"ownerUserId,omitempty"`
-	FirmId *primitive.ObjectID `json:"firmId" bson:"firmId,omitempty"`
-	Title string `json: "title" bson:"title,omnitempty"`
-	Description string `json: "description" bson:"description,omnitempty"`
-	Archived bool `json: "archived" bson:"archived,omnitempty"`
-	FirmName string `json: "firmName" bson:"firmName,omnitempty"`
-	OwnerUserName string `json: "ownerUserName" bson:"ownerUserName,omnitempty"`
-
+	Id            *primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	OwnerUserId   *primitive.ObjectID `json:"ownerUserId" bson:"ownerUserId,omitempty"`
+	FirmId        *primitive.ObjectID `json:"firmId" bson:"firmId,omitempty"`
+	Title         string              `json: "title" bson:"title,omnitempty"`
+	Description   string              `json: "description" bson:"description,omnitempty"`
+	Archived      bool                `json: "archived" bson:"archived,omnitempty"`
+	FirmName      string              `json: "firmName" bson:"firmName,omnitempty"`
+	OwnerUserName string              `json: "ownerUserName" bson:"ownerUserName,omnitempty"`
 }
 
 type ThreadServer struct {

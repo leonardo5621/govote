@@ -1,19 +1,19 @@
-package orm;
+package orm
 
 import (
-	"fmt"
-	"log"
-	"time"
 	"context"
 	"encoding/json"
-	"reflect"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/bson"
-	"google.golang.org/grpc/status"
-	"google.golang.org/grpc/codes"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"fmt"
 	"github.com/davecgh/go-spew/spew"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"log"
+	"reflect"
+	"time"
 )
 
 type OrmDB struct {
@@ -22,7 +22,7 @@ type OrmDB struct {
 
 var OrmSession *OrmDB
 
-func OpenMongoDBconnection() (*mongo.Client){
+func OpenMongoDBconnection() *mongo.Client {
 	var err error
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -32,7 +32,7 @@ func OpenMongoDBconnection() (*mongo.Client){
 	}
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017").SetAuth(credentials)
 	Client, err := mongo.Connect(ctx, clientOptions)
-	OrmSession = &OrmDB {
+	OrmSession = &OrmDB{
 		Client: Client,
 	}
 	if err != nil {

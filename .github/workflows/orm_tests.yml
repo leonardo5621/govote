@@ -1,0 +1,13 @@
+on: [push]
+jobs:
+  orm_test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Running unit tests on the orm package workflow"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Starting check
+        run: go test ./orm
+      - name: Finishing
+        run: echo "All tests passed"

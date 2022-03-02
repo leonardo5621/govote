@@ -3,20 +3,20 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 
-	"github.com/leonardo5621/govote/user_service"
- 	"github.com/leonardo5621/govote/firm_service"
-	"github.com/leonardo5621/govote/thread_service"
-	"github.com/leonardo5621/govote/orm"
-	"go.mongodb.org/mongo-driver/mongo"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"google.golang.org/grpc/credentials/insecure"
+	"github.com/leonardo5621/govote/firm_service"
+	"github.com/leonardo5621/govote/orm"
+	"github.com/leonardo5621/govote/thread_service"
+	"github.com/leonardo5621/govote/user_service"
+	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 const (
@@ -25,31 +25,31 @@ const (
 
 var collection *mongo.Collection
 
-func runHTTPreverseProxy () {
+func runHTTPreverseProxy() {
 	ctx := context.Background()
-  ctx, cancel := context.WithCancel(ctx)
-  defer cancel()
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
-  // Register gRPC server endpoint
-  mux := runtime.NewServeMux()
-  opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-  err := user_service.RegisterUserServiceHandlerFromEndpoint(ctx, mux,  "localhost:5005", opts)
-  if err != nil {
-    log.Fatalf("Server registration failed: %v", err)
-  }
-	firmRegisterError := firm_service.RegisterFirmServiceHandlerFromEndpoint(ctx, mux,  "localhost:5005", opts)
-  if firmRegisterError != nil {
-    log.Fatalf("Server registration failed: %v", err)
-  }
-	threadRegisterError := thread_service.RegisterThreadServiceHandlerFromEndpoint(ctx, mux,  "localhost:5005", opts)
-  if threadRegisterError != nil {
-    log.Fatalf("Server registration failed: %v", err)
-  }
+	// Register gRPC server endpoint
+	mux := runtime.NewServeMux()
+	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+	err := user_service.RegisterUserServiceHandlerFromEndpoint(ctx, mux, "localhost:5005", opts)
+	if err != nil {
+		log.Fatalf("Server registration failed: %v", err)
+	}
+	firmRegisterError := firm_service.RegisterFirmServiceHandlerFromEndpoint(ctx, mux, "localhost:5005", opts)
+	if firmRegisterError != nil {
+		log.Fatalf("Server registration failed: %v", err)
+	}
+	threadRegisterError := thread_service.RegisterThreadServiceHandlerFromEndpoint(ctx, mux, "localhost:5005", opts)
+	if threadRegisterError != nil {
+		log.Fatalf("Server registration failed: %v", err)
+	}
 
-  // Start HTTP server (and proxy calls to gRPC server endpoint)
-  log.Fatalln(http.ListenAndServe("localhost:8081", mux))
+	// Start HTTP server (and proxy calls to gRPC server endpoint)
+	log.Fatalln(http.ListenAndServe("localhost:8081", mux))
 	//mux := runtime.NewServeMux()
-  //opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+	//opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 	//err := user_service.RegisterUserServiceHandlerServer(ctx, mux, &UserServer{})
 	//if err != nil {
 	//		log.Fatalf("Server registration failed: %v", err)

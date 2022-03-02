@@ -1,18 +1,18 @@
 package user_service
 
-import 	(
+import (
 	"context"
-	"github.com/leonardo5621/govote/utilities"
 	"github.com/leonardo5621/govote/orm"
+	"github.com/leonardo5621/govote/utilities"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type UserModel struct {
-	Id *primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	FirstName string `json: "firstName" bson:"firstName,omnitempty"`
-	LastName string `json: "lastName" bson:"lastName,omnitempty"`
-	Email string `json: "email" bson:"email,omnitempty"`
-	Activated bool `json: "activated" bson:"activated,omnitempty"`
+	Id        *primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	FirstName string              `json: "firstName" bson:"firstName,omnitempty"`
+	LastName  string              `json: "lastName" bson:"lastName,omnitempty"`
+	Email     string              `json: "email" bson:"email,omnitempty"`
+	Activated bool                `json: "activated" bson:"activated,omnitempty"`
 }
 
 type UserServer struct {
