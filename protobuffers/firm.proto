@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package firm;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+
+option go_package = "/firm_service;firm_service";
+
+service FirmService {
+  rpc GetFirm(GetFirmRequest) returns (GetFirmResponse) {
+    option (google.api.http) = {
+      get: "/firm/{firmId}"
+    };
+  }
+  rpc CreateFirm(CreateFirmRequest) returns (CreateFirmResponse) {
+    option (google.api.http) = {
+      post: "/firm"
+      body: "*"
+};
+  };
+}
+
+message Firm {
+  string id = 1;
+  string name = 2 [(validate.rules).string = { min_len: 1, max_len: 100}];
+  string ownerUserId = 3 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+  string ownerUserName = 4 [(validate.rules).string = { min_len: 1, max_len: 100}];
+  bool enabled = 5;
+}
+
+message GetFirmRequest {
+  string firmId = 1 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+}
+
+message GetFirmResponse {
+  Firm firm = 1;
+}
+
+message CreateFirmRequest {
+  Firm firm = 1;
+}
+
+message CreateFirmResponse {
+  string firmId = 1;
+}
+

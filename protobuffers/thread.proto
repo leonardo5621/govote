@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package thread;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+option go_package = "/thread_service;thread_service";
+
+
+
+service ThreadService {
+  rpc GetThread(GetThreadRequest) returns (GetThreadResponse) {
+    option (google.api.http) = {
+      get: "/thread/{threadId}"
+    };
+  }
+  rpc CreateThread(CreateThreadRequest) returns (CreateThreadResponse) {
+    option (google.api.http) = {
+      post: "/thread",
+      body: "*"
+    };
+  }
+}
+
+message Thread {
+  string id = 1;
+  string title = 2 [(validate.rules).string = { min_len: 5, max_len: 150}];
+  string ownerUserId = 3 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+  bool archived = 4;
+  string description = 5 [(validate.rules).string = { max_len: 1000}];
+  string ownerUserName = 6;
+  string firmId = 7 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+  string firmName = 8;
+}
+
+message GetThreadRequest {
+  string threadId = 1;
+}
+
+message GetThreadResponse {
+  Thread thread = 1;
+}
+
+message CreateThreadRequest {
+  Thread thread = 1;
+}
+
+message CreateThreadResponse {
+  string threadId = 1;
+}
+

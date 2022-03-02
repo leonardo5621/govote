@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "/user_service;user_service";
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+service UserService {
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {
+    option (google.api.http) = {
+      get: "/user/{userId}"
+    };
+  };
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {
+    option (google.api.http) = {
+          post: "/user"
+          body: "*"
+    };
+  };
+}
+
+message User {
+  string id = 1;
+  string firstName = 2 [(validate.rules).string = { min_len: 1, max_len: 100}];
+  string lastName = 3 [(validate.rules).string = { min_len: 1, max_len: 100}];
+  string email = 4 [(validate.rules).string.email = true];
+  bool activated = 5;
+}
+
+message GetUserRequest {
+  string userId = 1 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+}
+
+message CreateUserRequest {
+  User user = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+}
+
+message CreateUserResponse {
+  string Id = 1;
+}
