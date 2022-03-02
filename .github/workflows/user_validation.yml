@@ -1,3 +1,4 @@
+name: User validation tests
 on: [push]
 jobs:
   user_validation_test:

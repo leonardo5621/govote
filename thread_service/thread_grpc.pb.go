@@ -19,7 +19,9 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ThreadServiceClient interface {
 	GetThread(ctx context.Context, in *GetThreadRequest, opts ...grpc.CallOption) (*GetThreadResponse, error)
+	GetThreadComments(ctx context.Context, in *GetThreadRequest, opts ...grpc.CallOption) (ThreadService_GetThreadCommentsClient, error)
 	CreateThread(ctx context.Context, in *CreateThreadRequest, opts ...grpc.CallOption) (*CreateThreadResponse, error)
+	CreateComment(ctx context.Context, in *CreateCommentRequest, opts ...grpc.CallOption) (*CreateCommentResponse, error)
 }
 
 type threadServiceClient struct {
@@ -39,9 +41,50 @@ func (c *threadServiceClient) GetThread(ctx context.Context, in *GetThreadReques
 	return out, nil
 }
 
+func (c *threadServiceClient) GetThreadComments(ctx context.Context, in *GetThreadRequest, opts ...grpc.CallOption) (ThreadService_GetThreadCommentsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ThreadService_ServiceDesc.Streams[0], "/thread.ThreadService/GetThreadComments", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &threadServiceGetThreadCommentsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ThreadService_GetThreadCommentsClient interface {
+	Recv() (*GetThreadCommentsResponse, error)
+	grpc.ClientStream
+}
+
+type threadServiceGetThreadCommentsClient struct {
+	grpc.ClientStream
+}
+
+func (x *threadServiceGetThreadCommentsClient) Recv() (*GetThreadCommentsResponse, error) {
+	m := new(GetThreadCommentsResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *threadServiceClient) CreateThread(ctx context.Context, in *CreateThreadRequest, opts ...grpc.CallOption) (*CreateThreadResponse, error) {
 	out := new(CreateThreadResponse)
 	err := c.cc.Invoke(ctx, "/thread.ThreadService/CreateThread", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *threadServiceClient) CreateComment(ctx context.Context, in *CreateCommentRequest, opts ...grpc.CallOption) (*CreateCommentResponse, error) {
+	out := new(CreateCommentResponse)
+	err := c.cc.Invoke(ctx, "/thread.ThreadService/CreateComment", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +96,9 @@ func (c *threadServiceClient) CreateThread(ctx context.Context, in *CreateThread
 // for forward compatibility
 type ThreadServiceServer interface {
 	GetThread(context.Context, *GetThreadRequest) (*GetThreadResponse, error)
+	GetThreadComments(*GetThreadRequest, ThreadService_GetThreadCommentsServer) error
 	CreateThread(context.Context, *CreateThreadRequest) (*CreateThreadResponse, error)
+	CreateComment(context.Context, *CreateCommentRequest) (*CreateCommentResponse, error)
 	mustEmbedUnimplementedThreadServiceServer()
 }
 
@@ -64,8 +109,14 @@ type UnimplementedThreadServiceServer struct {
 func (UnimplementedThreadServiceServer) GetThread(context.Context, *GetThreadRequest) (*GetThreadResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetThread not implemented")
 }
+func (UnimplementedThreadServiceServer) GetThreadComments(*GetThreadRequest, ThreadService_GetThreadCommentsServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetThreadComments not implemented")
+}
 func (UnimplementedThreadServiceServer) CreateThread(context.Context, *CreateThreadRequest) (*CreateThreadResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateThread not implemented")
+}
+func (UnimplementedThreadServiceServer) CreateComment(context.Context, *CreateCommentRequest) (*CreateCommentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateComment not implemented")
 }
 func (UnimplementedThreadServiceServer) mustEmbedUnimplementedThreadServiceServer() {}
 
@@ -98,6 +149,27 @@ func _ThreadService_GetThread_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ThreadService_GetThreadComments_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetThreadRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ThreadServiceServer).GetThreadComments(m, &threadServiceGetThreadCommentsServer{stream})
+}
+
+type ThreadService_GetThreadCommentsServer interface {
+	Send(*GetThreadCommentsResponse) error
+	grpc.ServerStream
+}
+
+type threadServiceGetThreadCommentsServer struct {
+	grpc.ServerStream
+}
+
+func (x *threadServiceGetThreadCommentsServer) Send(m *GetThreadCommentsResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _ThreadService_CreateThread_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateThreadRequest)
 	if err := dec(in); err != nil {
@@ -112,6 +184,24 @@ func _ThreadService_CreateThread_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ThreadServiceServer).CreateThread(ctx, req.(*CreateThreadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ThreadService_CreateComment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateCommentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ThreadServiceServer).CreateComment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/thread.ThreadService/CreateComment",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ThreadServiceServer).CreateComment(ctx, req.(*CreateCommentRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -131,7 +221,17 @@ var ThreadService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "CreateThread",
 			Handler:    _ThreadService_CreateThread_Handler,
 		},
+		{
+			MethodName: "CreateComment",
+			Handler:    _ThreadService_CreateComment_Handler,
+		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetThreadComments",
+			Handler:       _ThreadService_GetThreadComments_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "protobuffers/thread.proto",
 }

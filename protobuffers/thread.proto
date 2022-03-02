@@ -7,35 +7,56 @@ import "validate/validate.proto";
 
 option go_package = "/thread_service;thread_service";
 
-
-
 service ThreadService {
   rpc GetThread(GetThreadRequest) returns (GetThreadResponse) {
     option (google.api.http) = {
       get: "/thread/{threadId}"
     };
   }
+  rpc GetThreadComments(GetThreadRequest) returns (stream GetThreadCommentsResponse);
   rpc CreateThread(CreateThreadRequest) returns (CreateThreadResponse) {
     option (google.api.http) = {
       post: "/thread",
       body: "*"
     };
   }
+  rpc CreateComment(CreateCommentRequest) returns (CreateCommentResponse) {
+    option (google.api.http) = {
+      post: "/thread/comment",
+      body: "*"
+    };
+  }
+}
+
+message Comment {
+  string id = 1;
+  string answerOf = 2;
+  string text = 3;
+  string authorUserId = 4;
+  string authorUserName = 5;
+  string threadId = 6;
 }
 
 message Thread {
   string id = 1;
-  string title = 2 [(validate.rules).string = { min_len: 5, max_len: 150}];
-  string ownerUserId = 3 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+  string title = 2;
+  string ownerUserId = 3;
   bool archived = 4;
-  string description = 5 [(validate.rules).string = { max_len: 1000}];
+  string description = 5;
   string ownerUserName = 6;
-  string firmId = 7 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+  string firmId = 7;
   string firmName = 8;
 }
 
+message ThreadCreationPayload {
+  string title = 1 [(validate.rules).string = { min_len: 5, max_len: 150}];
+  string ownerUserId = 2 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+  string description = 3 [(validate.rules).string = { max_len: 1000}];
+  string firmId = 4 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+}
+
 message GetThreadRequest {
-  string threadId = 1;
+  string threadId = 1 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
 }
 
 message GetThreadResponse {
@@ -43,10 +64,28 @@ message GetThreadResponse {
 }
 
 message CreateThreadRequest {
-  Thread thread = 1;
+  ThreadCreationPayload thread = 1;
 }
 
 message CreateThreadResponse {
   string threadId = 1;
+}
+
+message GetThreadCommentsResponse {
+  Comment comment = 1;
+}
+
+message CreateCommentPayload {
+  string text = 1 [(validate.rules).string = { min_len: 1, max_len: 200}];
+  string authorUserId = 2 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+  string threadId = 3 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+}
+
+message CreateCommentRequest {
+  CreateCommentPayload comment = 1;
+}
+
+message CreateCommentResponse {
+  string commentId = 1;
 }
 
