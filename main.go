@@ -44,13 +44,6 @@ func runHTTPreverseProxy() {
 
 	// Start HTTP server (and proxy calls to gRPC server endpoint)
 	log.Fatalln(http.ListenAndServe("localhost:8081", mux))
-	//mux := runtime.NewServeMux()
-	//opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-	//err := user_service.RegisterUserServiceHandlerServer(ctx, mux, &UserServer{})
-	//if err != nil {
-	//		log.Fatalf("Server registration failed: %v", err)
-	//}
-	//log.Fatalln(http.ListenAndServe("localhost:8081", mux))
 }
 
 func main() {
@@ -77,27 +70,6 @@ func main() {
 
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt)
-
-	conn, err := grpc.Dial(":5005", grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("can not connect with server %v", err)
-	}
-	voteClient := upvote_service.NewUpvoteServiceClient(conn)
-
-	requests := []*upvote_service.VoteThreadRequest{
-		&upvote_service.VoteThreadRequest{UserId: "621d9471dca46778d6b66486", ThreadId: "621eca5ff0636d9bad2826bd", Votedir: 1 },
-		&upvote_service.VoteThreadRequest{UserId: "621d9471dca46778d6b66486", ThreadId: "621eca5ff0636d9bad2826bd", Votedir: 1 },
-		&upvote_service.VoteThreadRequest{UserId: "621d9471dca46778d6b66486", ThreadId: "621eca5ff0636d9bad2826bd", Votedir: -1 },
-	}
-	stream, err := voteClient.VoteThread(context.Background())
-	for _, instruction := range requests {
-		if err := stream.Send(instruction); err != nil {
-			log.Fatalf("%v.Send(%v) = %v: ", stream, instruction, err)
-		}
-	}
-	if err := stream.CloseSend(); err != nil {
-		log.Fatalf("%v.CloseSend() got error %v, want %v", stream, err, nil)
-	}
 
 	<-ch
 	fmt.Println("Closing connection")
