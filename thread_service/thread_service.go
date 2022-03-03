@@ -98,7 +98,7 @@ func (s *ThreadServer) CreateComment(ctx context.Context, req *CreateCommentRequ
 	}
 	// Pass the message parameter to a ThreadModel struct, which
 	// Has bson Marshal support
-	comment, err := orm.ConvertToEquivalentStruct(commentPayload, ThreadModel{})
+	comment, err := orm.ConvertToEquivalentStruct(commentPayload, CommentModel{})
 	assertedComment := comment.(*CommentModel)
 	if err != nil {
 		return nil, utilities.ReturnInternalError(err)
@@ -151,6 +151,36 @@ func (s *ThreadServer) GetThreadComments(req *GetThreadRequest, stream ThreadSer
 		}
 		stream.Send(&GetThreadCommentsResponse{
 			Comment: commentResponse.(*Comment),
+		})
+	}
+	return nil
+}
+
+func (s *ThreadServer) GetThreadByFirm(req *GetThreadByFirmRequest, stream ThreadService_GetThreadByFirmServer) error{
+	firmId := req.GetFirmId()
+	oid, err := primitive.ObjectIDFromHex(firmId)
+	if err != nil {
+		return utilities.ReturnInternalError(err)
+	}
+	collection := orm.OrmSession.Client.Database("upvote").Collection("thread")
+	query := bson.M{"firmId": oid }
+	cursor, err := collection.Find(context.Background(), query)
+	if err != nil {
+		return utilities.ReturnInternalError(err)
+	}
+	defer cursor.Close(context.Background())
+	for cursor.Next(context.Background()) {
+		thread := ThreadModel{}
+		err := cursor.Decode(&thread)
+		if err != nil {
+			return utilities.ReturnInternalError(err)
+		}
+		threadResponse, err := orm.ConvertToEquivalentStruct(thread, Thread{})
+		if err != nil {
+			return utilities.ReturnInternalError(err)
+		}
+		stream.Send(&GetThreadByFirmResponse{
+			Thread: threadResponse.(*Thread),
 		})
 	}
 	return nil

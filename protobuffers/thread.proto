@@ -13,7 +13,6 @@ service ThreadService {
       get: "/thread/{threadId}"
     };
   }
-  rpc GetThreadComments(GetThreadRequest) returns (stream GetThreadCommentsResponse);
   rpc CreateThread(CreateThreadRequest) returns (CreateThreadResponse) {
     option (google.api.http) = {
       post: "/thread",
@@ -26,6 +25,9 @@ service ThreadService {
       body: "*"
     };
   }
+  rpc GetThreadComments(GetThreadRequest) returns (stream GetThreadCommentsResponse);
+  rpc GetThreadByFirm(GetThreadByFirmRequest) returns (stream GetThreadByFirmResponse);
+
 }
 
 message Comment {
@@ -89,3 +91,10 @@ message CreateCommentResponse {
   string commentId = 1;
 }
 
+message GetThreadByFirmRequest {
+  string firmId = 1 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+}
+
+message GetThreadByFirmResponse {
+  Thread Thread = 1;
+}

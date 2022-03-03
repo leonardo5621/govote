@@ -2,21 +2,20 @@ syntax = "proto3";
 
 package upvote;
 
+import "validate/validate.proto";
+
 option go_package = "/upvote_service;upvote_service";
+
 
 service UpvoteService {
   rpc Vote(VotePayload) returns (VoteResponse) {}
 }
 
 message VotePayload {
-  int32 resourceId = 1;
-  int32 userId = 2;
-  int32 voteDir = 3;
-  enum ResourceType {
-    FIRM = 0;
-    ANSWER = 1;
-  }
-  ResourceType resourceType = 4;
+  string userId = 1;
+  int32 voteDir = 2;
+  string threadId = 3;
+  string commentId = 4;
 }
 
 message VoteResponse {
