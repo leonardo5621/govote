@@ -8,16 +8,28 @@ option go_package = "/upvote_service;upvote_service";
 
 
 service UpvoteService {
-  rpc Vote(VotePayload) returns (VoteResponse) {}
+  rpc VoteThread(stream VoteThreadRequest) returns (stream VoteThreadResponse) {}
+  rpc VoteComment(stream VoteCommentRequest) returns (stream VoteCommentResponse) {}
+
 }
 
-message VotePayload {
-  string userId = 1;
-  int32 voteDir = 2;
-  string threadId = 3;
-  string commentId = 4;
+message VoteThreadRequest {
+  string userId = 1 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+  int32 votedir = 2 [(validate.rules).int32 = { in: [-1, 1] }];
+  string threadId = 3 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
 }
 
-message VoteResponse {
-  bool valid = 1;
+message VoteThreadResponse {
+  string notification = 1;
+  string email = 2;
+}
+
+message VoteCommentRequest {
+  string userId = 1 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+  int32 votedir = 2 [(validate.rules).int32 = { in: [-1, 1] }];
+  string commentId = 3 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+}
+
+message VoteCommentResponse {
+  string notification = 1;
 }

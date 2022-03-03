@@ -6,7 +6,6 @@ import (
 	"github.com/leonardo5621/govote/orm"
 	"github.com/leonardo5621/govote/utilities"
 	"github.com/leonardo5621/govote/user_service"
-	"github.com/leonardo5621/govote/firm_service"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -14,21 +13,21 @@ import (
 type ThreadModel struct {
 	Id            *primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	OwnerUserId   *primitive.ObjectID `json:"ownerUserId" bson:"ownerUserId,omitempty"`
-	FirmId        *primitive.ObjectID `json:"firmId" bson:"firmId,omitempty"`
 	Title         string              `json: "title" bson:"title,omnitempty"`
 	Description   string              `json: "description" bson:"description,omnitempty"`
 	Archived      bool                `json: "archived" bson:"archived,omnitempty"`
-	FirmName      string              `json: "firmName" bson:"firmName,omnitempty"`
 	OwnerUserName string              `json: "ownerUserName" bson:"ownerUserName,omnitempty"`
+	VoteCount int              `json: "voteCount" bson:"voteCount,omnitempty"`
 }
 
 type CommentModel struct {
 	Id            *primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	AuthorUserId  *primitive.ObjectID `json:"authorUserId" bson:"authorUserId,omitempty"`
 	ThreadId      *primitive.ObjectID `json:"threadId" bson:"threadId,omitempty"`
-	AnswerOf      *primitive.ObjectID `json:"answerOf" bson:"answerOf,omitempty"`
 	AuthorUserName string     `json: "authorUserName" bson:"authorUserName,omnitempty"`
 	Text   string              `json: "text" bson:"text,omnitempty"`
+	VoteCount int              `json: "voteCount" bson:"voteCount,omnitempty"`
+
 }
 
 type ThreadServer struct {
@@ -71,14 +70,6 @@ func (s *ThreadServer) CreateThread(ctx context.Context, req *CreateThreadReques
 		return nil, utilities.ReturnInternalError(err)
 	}
 	assertedThread.OwnerUserName = user.UserName
-	// Get the firm name
-	firmCollection := orm.OrmSession.Client.Database("upvote").Collection("firm")
-	foundFirm, err := orm.FindDocument(threadPayload.GetFirmId(), firmCollection, ctx, firm_service.FirmModel{})
-	if err != nil {
-		return nil, utilities.ReturnInternalError(err)
-	}
-	firm := foundFirm.(*firm_service.FirmModel)
-	assertedThread.FirmName = firm.Name
 	// Thread creation
 	collection := orm.OrmSession.Client.Database("upvote").Collection("thread")
 	threadId, err := orm.Create(assertedThread, collection, ctx)
@@ -112,8 +103,8 @@ func (s *ThreadServer) CreateComment(ctx context.Context, req *CreateCommentRequ
 	}
 	assertedComment.AuthorUserName = user.UserName
 	// Check if the thread exist
-	firmCollection := orm.OrmSession.Client.Database("upvote").Collection("thread")
-	_, errThread := orm.FindDocument(commentPayload.GetThreadId(), firmCollection, ctx, firm_service.FirmModel{})
+	threadCollection := orm.OrmSession.Client.Database("upvote").Collection("thread")
+	_, errThread := orm.FindDocument(commentPayload.GetThreadId(), threadCollection, ctx, ThreadModel{})
 	if errThread != nil {
 		return nil, utilities.ReturnInternalError(errThread)
 	}
@@ -156,32 +147,3 @@ func (s *ThreadServer) GetThreadComments(req *GetThreadRequest, stream ThreadSer
 	return nil
 }
 
-func (s *ThreadServer) GetThreadByFirm(req *GetThreadByFirmRequest, stream ThreadService_GetThreadByFirmServer) error{
-	firmId := req.GetFirmId()
-	oid, err := primitive.ObjectIDFromHex(firmId)
-	if err != nil {
-		return utilities.ReturnInternalError(err)
-	}
-	collection := orm.OrmSession.Client.Database("upvote").Collection("thread")
-	query := bson.M{"firmId": oid }
-	cursor, err := collection.Find(context.Background(), query)
-	if err != nil {
-		return utilities.ReturnInternalError(err)
-	}
-	defer cursor.Close(context.Background())
-	for cursor.Next(context.Background()) {
-		thread := ThreadModel{}
-		err := cursor.Decode(&thread)
-		if err != nil {
-			return utilities.ReturnInternalError(err)
-		}
-		threadResponse, err := orm.ConvertToEquivalentStruct(thread, Thread{})
-		if err != nil {
-			return utilities.ReturnInternalError(err)
-		}
-		stream.Send(&GetThreadByFirmResponse{
-			Thread: threadResponse.(*Thread),
-		})
-	}
-	return nil
-}

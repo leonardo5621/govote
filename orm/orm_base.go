@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	//"github.com/davecgh/go-spew/spew"
-	//"github.com/leonardo5621/govote/utilities"
+	"github.com/leonardo5621/govote/utilities"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -67,6 +67,31 @@ func FindDocument(id string, collection DocumentFinder, ctx context.Context, fou
 	return targetStructPtr, nil
 }
 
+func CheckDocumentExists(filter interface{}, collection DocumentCounter, ctx context.Context) (bool, error) {
+	query := filter.(bson.M)
+	count, err := collection.CountDocuments(ctx, query)
+	if err != nil {
+		return false, utilities.ReturnInternalError(err)
+	}
+	if count == 0 {
+		return false, nil
+	}
+	return true, nil
+}
+
+func FindByQuery(filter interface{}, collection QueryFinder, ctx context.Context, ) ([]primitive.M, error) {
+	query := filter.(bson.M)
+	cur, err := collection.Find(ctx, query)
+	if err != nil {
+		return nil, utilities.ReturnInternalError(err)
+	}
+	var documentsFiltered []bson.M
+	if err = cur.All(ctx, &documentsFiltered); err != nil {
+		return nil, utilities.ReturnInternalError(err)
+	}
+	return documentsFiltered, nil
+}
+
 func ConvertToEquivalentStruct(initialStruct interface{}, targetStruct interface{}) (interface{}, error) {
 	targetStructPtr := reflect.New(reflect.TypeOf(targetStruct)).Interface()
 	marshalledRequest, err := json.Marshal(initialStruct)
@@ -93,4 +118,9 @@ type DocumentFinder interface {
 type QueryFinder interface {
 	Find(ctx context.Context, filter interface{},
 		opts ...*options.FindOptions) (cur *mongo.Cursor, err error)
+}
+
+type DocumentCounter interface {
+	CountDocuments(ctx context.Context, filter interface{},
+		opts ...*options.CountOptions) (int64, error)
 }

@@ -10,10 +10,10 @@ import (
 	"os/signal"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/leonardo5621/govote/firm_service"
 	"github.com/leonardo5621/govote/orm"
 	"github.com/leonardo5621/govote/thread_service"
 	"github.com/leonardo5621/govote/user_service"
+	"github.com/leonardo5621/govote/upvote_service"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -37,10 +37,6 @@ func runHTTPreverseProxy() {
 	if err != nil {
 		log.Fatalf("Server registration failed: %v", err)
 	}
-	firmRegisterError := firm_service.RegisterFirmServiceHandlerFromEndpoint(ctx, mux, "localhost:5005", opts)
-	if firmRegisterError != nil {
-		log.Fatalf("Server registration failed: %v", err)
-	}
 	threadRegisterError := thread_service.RegisterThreadServiceHandlerFromEndpoint(ctx, mux, "localhost:5005", opts)
 	if threadRegisterError != nil {
 		log.Fatalf("Server registration failed: %v", err)
@@ -61,8 +57,8 @@ func main() {
 	opts := []grpc.ServerOption{}
 	server := grpc.NewServer(opts...)
 	user_service.RegisterUserServiceServer(server, &user_service.UserServer{})
-	firm_service.RegisterFirmServiceServer(server, &firm_service.FirmServer{})
 	thread_service.RegisterThreadServiceServer(server, &thread_service.ThreadServer{})
+	upvote_service.RegisterUpvoteServiceServer(server, &upvote_service.UpvoteServer{})
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -81,6 +77,27 @@ func main() {
 
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt)
+
+	conn, err := grpc.Dial(":5005", grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("can not connect with server %v", err)
+	}
+	voteClient := upvote_service.NewUpvoteServiceClient(conn)
+
+	requests := []*upvote_service.VoteThreadRequest{
+		&upvote_service.VoteThreadRequest{UserId: "621d9471dca46778d6b66486", ThreadId: "621eca5ff0636d9bad2826bd", Votedir: 1 },
+		&upvote_service.VoteThreadRequest{UserId: "621d9471dca46778d6b66486", ThreadId: "621eca5ff0636d9bad2826bd", Votedir: 1 },
+		&upvote_service.VoteThreadRequest{UserId: "621d9471dca46778d6b66486", ThreadId: "621eca5ff0636d9bad2826bd", Votedir: -1 },
+	}
+	stream, err := voteClient.VoteThread(context.Background())
+	for _, instruction := range requests {
+		if err := stream.Send(instruction); err != nil {
+			log.Fatalf("%v.Send(%v) = %v: ", stream, instruction, err)
+		}
+	}
+	if err := stream.CloseSend(); err != nil {
+		log.Fatalf("%v.CloseSend() got error %v, want %v", stream, err, nil)
+	}
 
 	<-ch
 	fmt.Println("Closing connection")

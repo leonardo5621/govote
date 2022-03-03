@@ -26,35 +26,32 @@ service ThreadService {
     };
   }
   rpc GetThreadComments(GetThreadRequest) returns (stream GetThreadCommentsResponse);
-  rpc GetThreadByFirm(GetThreadByFirmRequest) returns (stream GetThreadByFirmResponse);
 
 }
 
 message Comment {
   string id = 1;
-  string answerOf = 2;
-  string text = 3;
-  string authorUserId = 4;
-  string authorUserName = 5;
-  string threadId = 6;
+  string text = 2;
+  string authorUserId = 3;
+  string authorUserName = 4;
+  string threadId = 5;
+  int32 voteCount = 6;
 }
 
 message Thread {
   string id = 1;
   string title = 2;
   string ownerUserId = 3;
-  bool archived = 4;
-  string description = 5;
-  string ownerUserName = 6;
-  string firmId = 7;
-  string firmName = 8;
+  string description = 4;
+  string ownerUserName = 5;
+  bool archived = 6;
+  int32 voteCount = 7;
 }
 
 message ThreadCreationPayload {
   string title = 1 [(validate.rules).string = { min_len: 5, max_len: 150}];
   string ownerUserId = 2 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
   string description = 3 [(validate.rules).string = { max_len: 1000}];
-  string firmId = 4 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
 }
 
 message GetThreadRequest {
@@ -89,12 +86,4 @@ message CreateCommentRequest {
 
 message CreateCommentResponse {
   string commentId = 1;
-}
-
-message GetThreadByFirmRequest {
-  string firmId = 1 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
-}
-
-message GetThreadByFirmResponse {
-  Thread Thread = 1;
 }
