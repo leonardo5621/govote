@@ -4,7 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
+	//"github.com/davecgh/go-spew/spew"
+	"github.com/leonardo5621/govote/utilities"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -66,10 +67,34 @@ func FindDocument(id string, collection DocumentFinder, ctx context.Context, fou
 	return targetStructPtr, nil
 }
 
+func CheckDocumentExists(filter interface{}, collection DocumentCounter, ctx context.Context) (bool, error) {
+	query := filter.(bson.M)
+	count, err := collection.CountDocuments(ctx, query)
+	if err != nil {
+		return false, utilities.ReturnInternalError(err)
+	}
+	if count == 0 {
+		return false, nil
+	}
+	return true, nil
+}
+
+func FindByQuery(filter interface{}, collection QueryFinder, ctx context.Context, ) ([]primitive.M, error) {
+	query := filter.(bson.M)
+	cur, err := collection.Find(ctx, query)
+	if err != nil {
+		return nil, utilities.ReturnInternalError(err)
+	}
+	var documentsFiltered []bson.M
+	if err = cur.All(ctx, &documentsFiltered); err != nil {
+		return nil, utilities.ReturnInternalError(err)
+	}
+	return documentsFiltered, nil
+}
+
 func ConvertToEquivalentStruct(initialStruct interface{}, targetStruct interface{}) (interface{}, error) {
 	targetStructPtr := reflect.New(reflect.TypeOf(targetStruct)).Interface()
 	marshalledRequest, err := json.Marshal(initialStruct)
-	spew.Dump(marshalledRequest)
 	if err != nil {
 		return nil, status.Errorf(
 			codes.Internal,
@@ -90,24 +115,12 @@ type DocumentFinder interface {
 		opts ...*options.FindOneOptions) *mongo.SingleResult
 }
 
-// func (m ORModel) FindByPk(searchedEntity interface{},  client *mongo.Client, mongoCtx context.Context) (interface{}, error) {
-// 	modelPtr := reflect.New(reflect.TypeOf(searchedEntity))
-// 	modelMap, ok := searchedEntity.(map[string]interface{})
-// 	if !ok {
-// 			return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("Type assertion map[string]interface{} failed;  got %T", modelMap))
-// 	}
-// 	id, ok := modelMap["Id"]
-// 	if !ok {
-// 		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("Id not given"))
-// 	}
-// 	oid, err := primitive.ObjectIDFromHex(id.(string))
-// 	if err != nil {
-// 		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("Could not convert to ObjectId: %v", err))
-// 	}
-// 	collection := client.Database(m.DatabaseName).Collection(m.ModelName)
-// 	res := collection.FindOne(mongoCtx, bson.M{"_id": oid})
-// 	if decodeErr := res.Decode(&modelPtr); decodeErr != nil {
-// 		return nil, status.Errorf(codes.NotFound, fmt.Sprintf("Could not find record with Object Id %s: %v", oid, err))
-// 	}
-// 	return modelPtr.Interface(), nil
-// }
+type QueryFinder interface {
+	Find(ctx context.Context, filter interface{},
+		opts ...*options.FindOptions) (cur *mongo.Cursor, err error)
+}
+
+type DocumentCounter interface {
+	CountDocuments(ctx context.Context, filter interface{},
+		opts ...*options.CountOptions) (int64, error)
+}

@@ -92,6 +92,17 @@ func (m *User) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if l := utf8.RuneCountInString(m.GetUserName()); l < 5 || l > 50 {
+		err := UserValidationError{
+			field:  "UserName",
+			reason: "value length must be between 5 and 50 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	// no validation rules for Activated
 
 	if len(errors) > 0 {

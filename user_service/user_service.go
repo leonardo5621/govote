@@ -12,6 +12,7 @@ type UserModel struct {
 	FirstName string              `json: "firstName" bson:"firstName,omnitempty"`
 	LastName  string              `json: "lastName" bson:"lastName,omnitempty"`
 	Email     string              `json: "email" bson:"email,omnitempty"`
+	UserName  string              `json: "userName" bson:"userName,omnitempty"`
 	Activated bool                `json: "activated" bson:"activated,omnitempty"`
 }
 
@@ -26,6 +27,8 @@ func (s *UserServer) GetUser(ctx context.Context, req *GetUserRequest) (*GetUser
 	if err != nil {
 		return nil, utilities.ReturnInternalError(err)
 	}
+	// Pass the parameters returned by the search to the User struct, which
+	// Is the defined in the response method
 	responseModel, err := orm.ConvertToEquivalentStruct(user, User{})
 	if err != nil {
 		return nil, utilities.ReturnInternalError(err)
@@ -40,6 +43,8 @@ func (s *UserServer) CreateUser(ctx context.Context, req *CreateUserRequest) (*C
 	if validationError != nil {
 		return nil, utilities.ReturnValidationError(validationError)
 	}
+	// Pass the message parameter to a UserModel struct, which
+	// Has bson Marshal support
 	user, err := orm.ConvertToEquivalentStruct(userPayload, UserModel{})
 	if err != nil {
 		return nil, utilities.ReturnInternalError(err)

@@ -26,7 +26,8 @@ message User {
   string firstName = 2 [(validate.rules).string = { min_len: 1, max_len: 100}];
   string lastName = 3 [(validate.rules).string = { min_len: 1, max_len: 100}];
   string email = 4 [(validate.rules).string.email = true];
-  bool activated = 5;
+  string userName = 5 [(validate.rules).string = { min_len: 5, max_len: 50}];
+  bool activated = 6;
 }
 
 message GetUserRequest {

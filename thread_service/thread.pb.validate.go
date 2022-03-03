@@ -35,6 +35,116 @@ var (
 	_ = sort.Sort
 )
 
+// Validate checks the field values on Comment with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Comment) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Comment with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in CommentMultiError, or nil if none found.
+func (m *Comment) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Comment) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for AnswerOf
+
+	// no validation rules for Text
+
+	// no validation rules for AuthorUserId
+
+	// no validation rules for AuthorUserName
+
+	// no validation rules for ThreadId
+
+	if len(errors) > 0 {
+		return CommentMultiError(errors)
+	}
+
+	return nil
+}
+
+// CommentMultiError is an error wrapping multiple validation errors returned
+// by Comment.ValidateAll() if the designated constraints aren't met.
+type CommentMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CommentMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CommentMultiError) AllErrors() []error { return m }
+
+// CommentValidationError is the validation error returned by Comment.Validate
+// if the designated constraints aren't met.
+type CommentValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CommentValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CommentValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CommentValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CommentValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CommentValidationError) ErrorName() string { return "CommentValidationError" }
+
+// Error satisfies the builtin error interface
+func (e CommentValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sComment.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CommentValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CommentValidationError{}
+
 // Validate checks the field values on Thread with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
@@ -58,53 +168,17 @@ func (m *Thread) validate(all bool) error {
 
 	// no validation rules for Id
 
-	if l := utf8.RuneCountInString(m.GetTitle()); l < 5 || l > 150 {
-		err := ThreadValidationError{
-			field:  "Title",
-			reason: "value length must be between 5 and 150 runes, inclusive",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Title
 
-	if !_Thread_OwnerUserId_Pattern.MatchString(m.GetOwnerUserId()) {
-		err := ThreadValidationError{
-			field:  "OwnerUserId",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9]*$\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for OwnerUserId
 
 	// no validation rules for Archived
 
-	if utf8.RuneCountInString(m.GetDescription()) > 1000 {
-		err := ThreadValidationError{
-			field:  "Description",
-			reason: "value length must be at most 1000 runes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Description
 
 	// no validation rules for OwnerUserName
 
-	if !_Thread_FirmId_Pattern.MatchString(m.GetFirmId()) {
-		err := ThreadValidationError{
-			field:  "FirmId",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9]*$\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for FirmId
 
 	// no validation rules for FirmName
 
@@ -185,9 +259,155 @@ var _ interface {
 	ErrorName() string
 } = ThreadValidationError{}
 
-var _Thread_OwnerUserId_Pattern = regexp.MustCompile("^[A-Za-z0-9]*$")
+// Validate checks the field values on ThreadCreationPayload with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ThreadCreationPayload) Validate() error {
+	return m.validate(false)
+}
 
-var _Thread_FirmId_Pattern = regexp.MustCompile("^[A-Za-z0-9]*$")
+// ValidateAll checks the field values on ThreadCreationPayload with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ThreadCreationPayloadMultiError, or nil if none found.
+func (m *ThreadCreationPayload) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ThreadCreationPayload) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := utf8.RuneCountInString(m.GetTitle()); l < 5 || l > 150 {
+		err := ThreadCreationPayloadValidationError{
+			field:  "Title",
+			reason: "value length must be between 5 and 150 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_ThreadCreationPayload_OwnerUserId_Pattern.MatchString(m.GetOwnerUserId()) {
+		err := ThreadCreationPayloadValidationError{
+			field:  "OwnerUserId",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9]*$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetDescription()) > 1000 {
+		err := ThreadCreationPayloadValidationError{
+			field:  "Description",
+			reason: "value length must be at most 1000 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_ThreadCreationPayload_FirmId_Pattern.MatchString(m.GetFirmId()) {
+		err := ThreadCreationPayloadValidationError{
+			field:  "FirmId",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9]*$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return ThreadCreationPayloadMultiError(errors)
+	}
+
+	return nil
+}
+
+// ThreadCreationPayloadMultiError is an error wrapping multiple validation
+// errors returned by ThreadCreationPayload.ValidateAll() if the designated
+// constraints aren't met.
+type ThreadCreationPayloadMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ThreadCreationPayloadMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ThreadCreationPayloadMultiError) AllErrors() []error { return m }
+
+// ThreadCreationPayloadValidationError is the validation error returned by
+// ThreadCreationPayload.Validate if the designated constraints aren't met.
+type ThreadCreationPayloadValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ThreadCreationPayloadValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ThreadCreationPayloadValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ThreadCreationPayloadValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ThreadCreationPayloadValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ThreadCreationPayloadValidationError) ErrorName() string {
+	return "ThreadCreationPayloadValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ThreadCreationPayloadValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sThreadCreationPayload.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ThreadCreationPayloadValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ThreadCreationPayloadValidationError{}
+
+var _ThreadCreationPayload_OwnerUserId_Pattern = regexp.MustCompile("^[A-Za-z0-9]*$")
+
+var _ThreadCreationPayload_FirmId_Pattern = regexp.MustCompile("^[A-Za-z0-9]*$")
 
 // Validate checks the field values on GetThreadRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -211,7 +431,16 @@ func (m *GetThreadRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for ThreadId
+	if !_GetThreadRequest_ThreadId_Pattern.MatchString(m.GetThreadId()) {
+		err := GetThreadRequestValidationError{
+			field:  "ThreadId",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9]*$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return GetThreadRequestMultiError(errors)
@@ -290,6 +519,8 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetThreadRequestValidationError{}
+
+var _GetThreadRequest_ThreadId_Pattern = regexp.MustCompile("^[A-Za-z0-9]*$")
 
 // Validate checks the field values on GetThreadResponse with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -656,3 +887,754 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CreateThreadResponseValidationError{}
+
+// Validate checks the field values on GetThreadCommentsResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetThreadCommentsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetThreadCommentsResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetThreadCommentsResponseMultiError, or nil if none found.
+func (m *GetThreadCommentsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetThreadCommentsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetComment()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetThreadCommentsResponseValidationError{
+					field:  "Comment",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetThreadCommentsResponseValidationError{
+					field:  "Comment",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetComment()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetThreadCommentsResponseValidationError{
+				field:  "Comment",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetThreadCommentsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetThreadCommentsResponseMultiError is an error wrapping multiple validation
+// errors returned by GetThreadCommentsResponse.ValidateAll() if the
+// designated constraints aren't met.
+type GetThreadCommentsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetThreadCommentsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetThreadCommentsResponseMultiError) AllErrors() []error { return m }
+
+// GetThreadCommentsResponseValidationError is the validation error returned by
+// GetThreadCommentsResponse.Validate if the designated constraints aren't met.
+type GetThreadCommentsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetThreadCommentsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetThreadCommentsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetThreadCommentsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetThreadCommentsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetThreadCommentsResponseValidationError) ErrorName() string {
+	return "GetThreadCommentsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetThreadCommentsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetThreadCommentsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetThreadCommentsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetThreadCommentsResponseValidationError{}
+
+// Validate checks the field values on CreateCommentPayload with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateCommentPayload) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateCommentPayload with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CreateCommentPayloadMultiError, or nil if none found.
+func (m *CreateCommentPayload) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateCommentPayload) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := utf8.RuneCountInString(m.GetText()); l < 1 || l > 200 {
+		err := CreateCommentPayloadValidationError{
+			field:  "Text",
+			reason: "value length must be between 1 and 200 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_CreateCommentPayload_AuthorUserId_Pattern.MatchString(m.GetAuthorUserId()) {
+		err := CreateCommentPayloadValidationError{
+			field:  "AuthorUserId",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9]*$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_CreateCommentPayload_ThreadId_Pattern.MatchString(m.GetThreadId()) {
+		err := CreateCommentPayloadValidationError{
+			field:  "ThreadId",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9]*$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return CreateCommentPayloadMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateCommentPayloadMultiError is an error wrapping multiple validation
+// errors returned by CreateCommentPayload.ValidateAll() if the designated
+// constraints aren't met.
+type CreateCommentPayloadMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateCommentPayloadMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateCommentPayloadMultiError) AllErrors() []error { return m }
+
+// CreateCommentPayloadValidationError is the validation error returned by
+// CreateCommentPayload.Validate if the designated constraints aren't met.
+type CreateCommentPayloadValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateCommentPayloadValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateCommentPayloadValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateCommentPayloadValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateCommentPayloadValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateCommentPayloadValidationError) ErrorName() string {
+	return "CreateCommentPayloadValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateCommentPayloadValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateCommentPayload.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateCommentPayloadValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateCommentPayloadValidationError{}
+
+var _CreateCommentPayload_AuthorUserId_Pattern = regexp.MustCompile("^[A-Za-z0-9]*$")
+
+var _CreateCommentPayload_ThreadId_Pattern = regexp.MustCompile("^[A-Za-z0-9]*$")
+
+// Validate checks the field values on CreateCommentRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateCommentRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateCommentRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CreateCommentRequestMultiError, or nil if none found.
+func (m *CreateCommentRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateCommentRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetComment()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateCommentRequestValidationError{
+					field:  "Comment",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateCommentRequestValidationError{
+					field:  "Comment",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetComment()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateCommentRequestValidationError{
+				field:  "Comment",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return CreateCommentRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateCommentRequestMultiError is an error wrapping multiple validation
+// errors returned by CreateCommentRequest.ValidateAll() if the designated
+// constraints aren't met.
+type CreateCommentRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateCommentRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateCommentRequestMultiError) AllErrors() []error { return m }
+
+// CreateCommentRequestValidationError is the validation error returned by
+// CreateCommentRequest.Validate if the designated constraints aren't met.
+type CreateCommentRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateCommentRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateCommentRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateCommentRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateCommentRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateCommentRequestValidationError) ErrorName() string {
+	return "CreateCommentRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateCommentRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateCommentRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateCommentRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateCommentRequestValidationError{}
+
+// Validate checks the field values on CreateCommentResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateCommentResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateCommentResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CreateCommentResponseMultiError, or nil if none found.
+func (m *CreateCommentResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateCommentResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for CommentId
+
+	if len(errors) > 0 {
+		return CreateCommentResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateCommentResponseMultiError is an error wrapping multiple validation
+// errors returned by CreateCommentResponse.ValidateAll() if the designated
+// constraints aren't met.
+type CreateCommentResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateCommentResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateCommentResponseMultiError) AllErrors() []error { return m }
+
+// CreateCommentResponseValidationError is the validation error returned by
+// CreateCommentResponse.Validate if the designated constraints aren't met.
+type CreateCommentResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateCommentResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateCommentResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateCommentResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateCommentResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateCommentResponseValidationError) ErrorName() string {
+	return "CreateCommentResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateCommentResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateCommentResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateCommentResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateCommentResponseValidationError{}
+
+// Validate checks the field values on GetThreadByFirmRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetThreadByFirmRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetThreadByFirmRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetThreadByFirmRequestMultiError, or nil if none found.
+func (m *GetThreadByFirmRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetThreadByFirmRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if !_GetThreadByFirmRequest_FirmId_Pattern.MatchString(m.GetFirmId()) {
+		err := GetThreadByFirmRequestValidationError{
+			field:  "FirmId",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9]*$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return GetThreadByFirmRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetThreadByFirmRequestMultiError is an error wrapping multiple validation
+// errors returned by GetThreadByFirmRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetThreadByFirmRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetThreadByFirmRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetThreadByFirmRequestMultiError) AllErrors() []error { return m }
+
+// GetThreadByFirmRequestValidationError is the validation error returned by
+// GetThreadByFirmRequest.Validate if the designated constraints aren't met.
+type GetThreadByFirmRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetThreadByFirmRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetThreadByFirmRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetThreadByFirmRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetThreadByFirmRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetThreadByFirmRequestValidationError) ErrorName() string {
+	return "GetThreadByFirmRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetThreadByFirmRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetThreadByFirmRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetThreadByFirmRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetThreadByFirmRequestValidationError{}
+
+var _GetThreadByFirmRequest_FirmId_Pattern = regexp.MustCompile("^[A-Za-z0-9]*$")
+
+// Validate checks the field values on GetThreadByFirmResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetThreadByFirmResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetThreadByFirmResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetThreadByFirmResponseMultiError, or nil if none found.
+func (m *GetThreadByFirmResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetThreadByFirmResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetThread()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetThreadByFirmResponseValidationError{
+					field:  "Thread",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetThreadByFirmResponseValidationError{
+					field:  "Thread",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetThread()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetThreadByFirmResponseValidationError{
+				field:  "Thread",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetThreadByFirmResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetThreadByFirmResponseMultiError is an error wrapping multiple validation
+// errors returned by GetThreadByFirmResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetThreadByFirmResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetThreadByFirmResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetThreadByFirmResponseMultiError) AllErrors() []error { return m }
+
+// GetThreadByFirmResponseValidationError is the validation error returned by
+// GetThreadByFirmResponse.Validate if the designated constraints aren't met.
+type GetThreadByFirmResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetThreadByFirmResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetThreadByFirmResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetThreadByFirmResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetThreadByFirmResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetThreadByFirmResponseValidationError) ErrorName() string {
+	return "GetThreadByFirmResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetThreadByFirmResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetThreadByFirmResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetThreadByFirmResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetThreadByFirmResponseValidationError{}

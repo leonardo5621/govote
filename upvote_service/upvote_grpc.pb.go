@@ -18,7 +18,8 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UpvoteServiceClient interface {
-	Vote(ctx context.Context, in *VotePayload, opts ...grpc.CallOption) (*VoteResponse, error)
+	VoteThread(ctx context.Context, opts ...grpc.CallOption) (UpvoteService_VoteThreadClient, error)
+	VoteComment(ctx context.Context, opts ...grpc.CallOption) (UpvoteService_VoteCommentClient, error)
 }
 
 type upvoteServiceClient struct {
@@ -29,20 +30,74 @@ func NewUpvoteServiceClient(cc grpc.ClientConnInterface) UpvoteServiceClient {
 	return &upvoteServiceClient{cc}
 }
 
-func (c *upvoteServiceClient) Vote(ctx context.Context, in *VotePayload, opts ...grpc.CallOption) (*VoteResponse, error) {
-	out := new(VoteResponse)
-	err := c.cc.Invoke(ctx, "/upvote.UpvoteService/Vote", in, out, opts...)
+func (c *upvoteServiceClient) VoteThread(ctx context.Context, opts ...grpc.CallOption) (UpvoteService_VoteThreadClient, error) {
+	stream, err := c.cc.NewStream(ctx, &UpvoteService_ServiceDesc.Streams[0], "/upvote.UpvoteService/VoteThread", opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &upvoteServiceVoteThreadClient{stream}
+	return x, nil
+}
+
+type UpvoteService_VoteThreadClient interface {
+	Send(*VoteThreadRequest) error
+	Recv() (*VoteThreadResponse, error)
+	grpc.ClientStream
+}
+
+type upvoteServiceVoteThreadClient struct {
+	grpc.ClientStream
+}
+
+func (x *upvoteServiceVoteThreadClient) Send(m *VoteThreadRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *upvoteServiceVoteThreadClient) Recv() (*VoteThreadResponse, error) {
+	m := new(VoteThreadResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *upvoteServiceClient) VoteComment(ctx context.Context, opts ...grpc.CallOption) (UpvoteService_VoteCommentClient, error) {
+	stream, err := c.cc.NewStream(ctx, &UpvoteService_ServiceDesc.Streams[1], "/upvote.UpvoteService/VoteComment", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &upvoteServiceVoteCommentClient{stream}
+	return x, nil
+}
+
+type UpvoteService_VoteCommentClient interface {
+	Send(*VoteCommentRequest) error
+	Recv() (*VoteCommentResponse, error)
+	grpc.ClientStream
+}
+
+type upvoteServiceVoteCommentClient struct {
+	grpc.ClientStream
+}
+
+func (x *upvoteServiceVoteCommentClient) Send(m *VoteCommentRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *upvoteServiceVoteCommentClient) Recv() (*VoteCommentResponse, error) {
+	m := new(VoteCommentResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // UpvoteServiceServer is the server API for UpvoteService service.
 // All implementations must embed UnimplementedUpvoteServiceServer
 // for forward compatibility
 type UpvoteServiceServer interface {
-	Vote(context.Context, *VotePayload) (*VoteResponse, error)
+	VoteThread(UpvoteService_VoteThreadServer) error
+	VoteComment(UpvoteService_VoteCommentServer) error
 	mustEmbedUnimplementedUpvoteServiceServer()
 }
 
@@ -50,8 +105,11 @@ type UpvoteServiceServer interface {
 type UnimplementedUpvoteServiceServer struct {
 }
 
-func (UnimplementedUpvoteServiceServer) Vote(context.Context, *VotePayload) (*VoteResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Vote not implemented")
+func (UnimplementedUpvoteServiceServer) VoteThread(UpvoteService_VoteThreadServer) error {
+	return status.Errorf(codes.Unimplemented, "method VoteThread not implemented")
+}
+func (UnimplementedUpvoteServiceServer) VoteComment(UpvoteService_VoteCommentServer) error {
+	return status.Errorf(codes.Unimplemented, "method VoteComment not implemented")
 }
 func (UnimplementedUpvoteServiceServer) mustEmbedUnimplementedUpvoteServiceServer() {}
 
@@ -66,22 +124,56 @@ func RegisterUpvoteServiceServer(s grpc.ServiceRegistrar, srv UpvoteServiceServe
 	s.RegisterService(&UpvoteService_ServiceDesc, srv)
 }
 
-func _UpvoteService_Vote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(VotePayload)
-	if err := dec(in); err != nil {
+func _UpvoteService_VoteThread_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(UpvoteServiceServer).VoteThread(&upvoteServiceVoteThreadServer{stream})
+}
+
+type UpvoteService_VoteThreadServer interface {
+	Send(*VoteThreadResponse) error
+	Recv() (*VoteThreadRequest, error)
+	grpc.ServerStream
+}
+
+type upvoteServiceVoteThreadServer struct {
+	grpc.ServerStream
+}
+
+func (x *upvoteServiceVoteThreadServer) Send(m *VoteThreadResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *upvoteServiceVoteThreadServer) Recv() (*VoteThreadRequest, error) {
+	m := new(VoteThreadRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
-	if interceptor == nil {
-		return srv.(UpvoteServiceServer).Vote(ctx, in)
+	return m, nil
+}
+
+func _UpvoteService_VoteComment_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(UpvoteServiceServer).VoteComment(&upvoteServiceVoteCommentServer{stream})
+}
+
+type UpvoteService_VoteCommentServer interface {
+	Send(*VoteCommentResponse) error
+	Recv() (*VoteCommentRequest, error)
+	grpc.ServerStream
+}
+
+type upvoteServiceVoteCommentServer struct {
+	grpc.ServerStream
+}
+
+func (x *upvoteServiceVoteCommentServer) Send(m *VoteCommentResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *upvoteServiceVoteCommentServer) Recv() (*VoteCommentRequest, error) {
+	m := new(VoteCommentRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
 	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/upvote.UpvoteService/Vote",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UpvoteServiceServer).Vote(ctx, req.(*VotePayload))
-	}
-	return interceptor(ctx, in, info, handler)
+	return m, nil
 }
 
 // UpvoteService_ServiceDesc is the grpc.ServiceDesc for UpvoteService service.
@@ -90,12 +182,20 @@ func _UpvoteService_Vote_Handler(srv interface{}, ctx context.Context, dec func(
 var UpvoteService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "upvote.UpvoteService",
 	HandlerType: (*UpvoteServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
+	Methods:     []grpc.MethodDesc{},
+	Streams: []grpc.StreamDesc{
 		{
-			MethodName: "Vote",
-			Handler:    _UpvoteService_Vote_Handler,
+			StreamName:    "VoteThread",
+			Handler:       _UpvoteService_VoteThread_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "VoteComment",
+			Handler:       _UpvoteService_VoteComment_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "upvote.proto",
+	Metadata: "protobuffers/upvote.proto",
 }

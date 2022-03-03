@@ -1,8 +1,4 @@
 create_upvote_service:
-	protoc --proto_path=protobuffers protobuffers/upvote.proto --go_out=.
-	protoc --proto_path=protobuffers protobuffers/upvote.proto --go-grpc_out=.
-
-create_firm_service:
 	protoc \
   -I . \
   -I=${GOPATH}/src \
@@ -10,12 +6,7 @@ create_firm_service:
   --go_out=":." \
   --validate_out="lang=go:." \
 	--go-grpc_out=. \
-	--grpc-gateway_out firm_service \
-	 --grpc-gateway_opt logtostderr=true \
-	--grpc-gateway_opt paths=source_relative \
-	./protobuffers/firm.proto
-	mv firm_service/protobuffers/firm.* firm_service
-	rm -r firm_service/protobuffers	
+	./protobuffers/upvote.proto
 
 create_user_service:
 	protoc \

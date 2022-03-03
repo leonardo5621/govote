@@ -20,6 +20,9 @@ const _ = grpc.SupportPackageIsVersion7
 type ThreadServiceClient interface {
 	GetThread(ctx context.Context, in *GetThreadRequest, opts ...grpc.CallOption) (*GetThreadResponse, error)
 	CreateThread(ctx context.Context, in *CreateThreadRequest, opts ...grpc.CallOption) (*CreateThreadResponse, error)
+	CreateComment(ctx context.Context, in *CreateCommentRequest, opts ...grpc.CallOption) (*CreateCommentResponse, error)
+	GetThreadComments(ctx context.Context, in *GetThreadRequest, opts ...grpc.CallOption) (ThreadService_GetThreadCommentsClient, error)
+	GetThreadByFirm(ctx context.Context, in *GetThreadByFirmRequest, opts ...grpc.CallOption) (ThreadService_GetThreadByFirmClient, error)
 }
 
 type threadServiceClient struct {
@@ -48,12 +51,88 @@ func (c *threadServiceClient) CreateThread(ctx context.Context, in *CreateThread
 	return out, nil
 }
 
+func (c *threadServiceClient) CreateComment(ctx context.Context, in *CreateCommentRequest, opts ...grpc.CallOption) (*CreateCommentResponse, error) {
+	out := new(CreateCommentResponse)
+	err := c.cc.Invoke(ctx, "/thread.ThreadService/CreateComment", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *threadServiceClient) GetThreadComments(ctx context.Context, in *GetThreadRequest, opts ...grpc.CallOption) (ThreadService_GetThreadCommentsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ThreadService_ServiceDesc.Streams[0], "/thread.ThreadService/GetThreadComments", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &threadServiceGetThreadCommentsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ThreadService_GetThreadCommentsClient interface {
+	Recv() (*GetThreadCommentsResponse, error)
+	grpc.ClientStream
+}
+
+type threadServiceGetThreadCommentsClient struct {
+	grpc.ClientStream
+}
+
+func (x *threadServiceGetThreadCommentsClient) Recv() (*GetThreadCommentsResponse, error) {
+	m := new(GetThreadCommentsResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *threadServiceClient) GetThreadByFirm(ctx context.Context, in *GetThreadByFirmRequest, opts ...grpc.CallOption) (ThreadService_GetThreadByFirmClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ThreadService_ServiceDesc.Streams[1], "/thread.ThreadService/GetThreadByFirm", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &threadServiceGetThreadByFirmClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ThreadService_GetThreadByFirmClient interface {
+	Recv() (*GetThreadByFirmResponse, error)
+	grpc.ClientStream
+}
+
+type threadServiceGetThreadByFirmClient struct {
+	grpc.ClientStream
+}
+
+func (x *threadServiceGetThreadByFirmClient) Recv() (*GetThreadByFirmResponse, error) {
+	m := new(GetThreadByFirmResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ThreadServiceServer is the server API for ThreadService service.
 // All implementations must embed UnimplementedThreadServiceServer
 // for forward compatibility
 type ThreadServiceServer interface {
 	GetThread(context.Context, *GetThreadRequest) (*GetThreadResponse, error)
 	CreateThread(context.Context, *CreateThreadRequest) (*CreateThreadResponse, error)
+	CreateComment(context.Context, *CreateCommentRequest) (*CreateCommentResponse, error)
+	GetThreadComments(*GetThreadRequest, ThreadService_GetThreadCommentsServer) error
+	GetThreadByFirm(*GetThreadByFirmRequest, ThreadService_GetThreadByFirmServer) error
 	mustEmbedUnimplementedThreadServiceServer()
 }
 
@@ -66,6 +145,15 @@ func (UnimplementedThreadServiceServer) GetThread(context.Context, *GetThreadReq
 }
 func (UnimplementedThreadServiceServer) CreateThread(context.Context, *CreateThreadRequest) (*CreateThreadResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateThread not implemented")
+}
+func (UnimplementedThreadServiceServer) CreateComment(context.Context, *CreateCommentRequest) (*CreateCommentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateComment not implemented")
+}
+func (UnimplementedThreadServiceServer) GetThreadComments(*GetThreadRequest, ThreadService_GetThreadCommentsServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetThreadComments not implemented")
+}
+func (UnimplementedThreadServiceServer) GetThreadByFirm(*GetThreadByFirmRequest, ThreadService_GetThreadByFirmServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetThreadByFirm not implemented")
 }
 func (UnimplementedThreadServiceServer) mustEmbedUnimplementedThreadServiceServer() {}
 
@@ -116,6 +204,66 @@ func _ThreadService_CreateThread_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ThreadService_CreateComment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateCommentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ThreadServiceServer).CreateComment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/thread.ThreadService/CreateComment",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ThreadServiceServer).CreateComment(ctx, req.(*CreateCommentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ThreadService_GetThreadComments_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetThreadRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ThreadServiceServer).GetThreadComments(m, &threadServiceGetThreadCommentsServer{stream})
+}
+
+type ThreadService_GetThreadCommentsServer interface {
+	Send(*GetThreadCommentsResponse) error
+	grpc.ServerStream
+}
+
+type threadServiceGetThreadCommentsServer struct {
+	grpc.ServerStream
+}
+
+func (x *threadServiceGetThreadCommentsServer) Send(m *GetThreadCommentsResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ThreadService_GetThreadByFirm_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetThreadByFirmRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ThreadServiceServer).GetThreadByFirm(m, &threadServiceGetThreadByFirmServer{stream})
+}
+
+type ThreadService_GetThreadByFirmServer interface {
+	Send(*GetThreadByFirmResponse) error
+	grpc.ServerStream
+}
+
+type threadServiceGetThreadByFirmServer struct {
+	grpc.ServerStream
+}
+
+func (x *threadServiceGetThreadByFirmServer) Send(m *GetThreadByFirmResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ThreadService_ServiceDesc is the grpc.ServiceDesc for ThreadService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -131,7 +279,22 @@ var ThreadService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "CreateThread",
 			Handler:    _ThreadService_CreateThread_Handler,
 		},
+		{
+			MethodName: "CreateComment",
+			Handler:    _ThreadService_CreateComment_Handler,
+		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetThreadComments",
+			Handler:       _ThreadService_GetThreadComments_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetThreadByFirm",
+			Handler:       _ThreadService_GetThreadByFirm_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "protobuffers/thread.proto",
 }
