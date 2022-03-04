@@ -2,15 +2,7 @@ package upvote_service
 
 import (
 	"testing"
-	//"log"
-	//"io"
-	//"context"
-	//"time"
-	//"net"
 	"gotest.tools/v3/assert"
-	// "google.golang.org/grpc"
-	// "google.golang.org/grpc/test/bufconn"
-	//"github.com/leonardo5621/govote/orm"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/integration/mtest"

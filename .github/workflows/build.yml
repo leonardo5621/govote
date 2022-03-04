@@ -8,6 +8,7 @@ jobs:
       - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v2
+      - run: cd server
       - name: Building server
         run: go build .
       - name: Finishing
