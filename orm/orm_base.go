@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	//"github.com/davecgh/go-spew/spew"
 	"github.com/leonardo5621/govote/utilities"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -54,15 +53,19 @@ func Create(model interface{}, collection DocumentInserter, ctx context.Context)
 	return stringId.Hex(), nil
 }
 
-func FindDocument(id string, collection DocumentFinder, ctx context.Context, foundDocumentInstance interface{}) (interface{}, error) {
-	targetStructPtr := reflect.New(reflect.TypeOf(foundDocumentInstance)).Interface()
-	oid, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("Could not convert to ObjectId: %v", err))
+func FindDocument(finder FindOneOperator, collection DocumentFinder, ctx context.Context) (interface{}, error) {
+	// targetStructPtr := reflect.New(reflect.TypeOf(finder.GetDecodeTargetStruct())).Interface()
+	targetStructPtr := finder.GetDecodeTargetStruct()
+	if targetStructPtr == nil {
+		return nil, status.Errorf(codes.NotFound, fmt.Sprintf("Target struct not set"))
 	}
-	res := collection.FindOne(ctx, bson.M{"_id": oid})
-	if decodeErr := res.Decode(targetStructPtr); decodeErr != nil {
-		return nil, status.Errorf(codes.NotFound, fmt.Sprintf("Could not find record with Object Id %s: %v", oid, err))
+	query := finder.GetFindOneQuery()
+	if query == nil {
+		return nil, status.Errorf(codes.NotFound, fmt.Sprintf("Find query not set"))
+	}
+	res := collection.FindOne(ctx, finder.GetFindOneQuery())
+	if err := res.Decode(targetStructPtr); err != nil {
+		return nil, status.Errorf(codes.NotFound, fmt.Sprintf("Could not find record with Object Id %v", err))
 	}
 	return targetStructPtr, nil
 }
@@ -92,7 +95,7 @@ func FindByQuery(filter interface{}, collection QueryFinder, ctx context.Context
 	return documentsFiltered, nil
 }
 
-func ConvertToEquivalentStruct(initialStruct interface{}, targetStruct interface{}) (interface{}, error) {
+func ConvertStruct(initialStruct interface{}, targetStruct interface{}) (interface{}, error) {
 	targetStructPtr := reflect.New(reflect.TypeOf(targetStruct)).Interface()
 	marshalledRequest, err := json.Marshal(initialStruct)
 	if err != nil {
@@ -105,22 +108,16 @@ func ConvertToEquivalentStruct(initialStruct interface{}, targetStruct interface
 	return targetStructPtr, nil
 }
 
-type DocumentInserter interface {
-	InsertOne(ctx context.Context, document interface{},
-		opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error)
-}
-
-type DocumentFinder interface {
-	FindOne(ctx context.Context, filter interface{},
-		opts ...*options.FindOneOptions) *mongo.SingleResult
-}
-
-type QueryFinder interface {
-	Find(ctx context.Context, filter interface{},
-		opts ...*options.FindOptions) (cur *mongo.Cursor, err error)
-}
-
-type DocumentCounter interface {
-	CountDocuments(ctx context.Context, filter interface{},
-		opts ...*options.CountOptions) (int64, error)
+func CheckCollectionForDocId(id string, collection *mongo.Collection, ctx context.Context) (error) {
+	docId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return utilities.ReturnInternalError(err)
+	}
+	exists, err := CheckDocumentExists(bson.M{"_id": docId}, collection, ctx)
+	if err != nil {
+		return utilities.ReturnInternalError(err)
+	} else if !exists {
+		return status.Errorf(codes.NotFound, fmt.Sprintf("DocId %v not found in collection", docId))
+	}
+	return nil
 }

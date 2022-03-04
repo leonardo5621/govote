@@ -4,32 +4,27 @@ import (
 	"context"
 	"github.com/leonardo5621/govote/orm"
 	"github.com/leonardo5621/govote/utilities"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type UserModel struct {
-	Id        *primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	FirstName string              `json: "firstName" bson:"firstName,omnitempty"`
-	LastName  string              `json: "lastName" bson:"lastName,omnitempty"`
-	Email     string              `json: "email" bson:"email,omnitempty"`
-	UserName  string              `json: "userName" bson:"userName,omnitempty"`
-	Activated bool                `json: "activated" bson:"activated,omnitempty"`
-}
 
 type UserServer struct {
 	UnimplementedUserServiceServer
 }
 
 func (s *UserServer) GetUser(ctx context.Context, req *GetUserRequest) (*GetUserResponse, error) {
-	id := req.GetUserId()
+	userFinder := &UserFinder{}
+	err := userFinder.Init(req.GetUserId())
+	if err != nil {
+		return nil, utilities.ReturnValidationError(err)
+	}
 	collection := orm.OrmSession.Client.Database("upvote").Collection("user")
-	user, err := orm.FindDocument(id, collection, ctx, UserModel{})
+	user, err := orm.FindDocument(userFinder, collection, ctx)
 	if err != nil {
 		return nil, utilities.ReturnInternalError(err)
 	}
-	// Pass the parameters returned by the search to the User struct, which
+	// Pass the document returned by the search to the User struct, which
 	// Is the defined in the response method
-	responseModel, err := orm.ConvertToEquivalentStruct(user, User{})
+	responseModel, err := orm.ConvertStruct(user, User{})
 	if err != nil {
 		return nil, utilities.ReturnInternalError(err)
 	}
@@ -45,7 +40,7 @@ func (s *UserServer) CreateUser(ctx context.Context, req *CreateUserRequest) (*C
 	}
 	// Pass the message parameter to a UserModel struct, which
 	// Has bson Marshal support
-	user, err := orm.ConvertToEquivalentStruct(userPayload, UserModel{})
+	user, err := orm.ConvertStruct(userPayload, UserModel{})
 	if err != nil {
 		return nil, utilities.ReturnInternalError(err)
 	}

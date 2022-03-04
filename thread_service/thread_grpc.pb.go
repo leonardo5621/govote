@@ -22,7 +22,6 @@ type ThreadServiceClient interface {
 	CreateThread(ctx context.Context, in *CreateThreadRequest, opts ...grpc.CallOption) (*CreateThreadResponse, error)
 	CreateComment(ctx context.Context, in *CreateCommentRequest, opts ...grpc.CallOption) (*CreateCommentResponse, error)
 	GetThreadComments(ctx context.Context, in *GetThreadRequest, opts ...grpc.CallOption) (ThreadService_GetThreadCommentsClient, error)
-	GetThreadByFirm(ctx context.Context, in *GetThreadByFirmRequest, opts ...grpc.CallOption) (ThreadService_GetThreadByFirmClient, error)
 }
 
 type threadServiceClient struct {
@@ -92,38 +91,6 @@ func (x *threadServiceGetThreadCommentsClient) Recv() (*GetThreadCommentsRespons
 	return m, nil
 }
 
-func (c *threadServiceClient) GetThreadByFirm(ctx context.Context, in *GetThreadByFirmRequest, opts ...grpc.CallOption) (ThreadService_GetThreadByFirmClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ThreadService_ServiceDesc.Streams[1], "/thread.ThreadService/GetThreadByFirm", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &threadServiceGetThreadByFirmClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type ThreadService_GetThreadByFirmClient interface {
-	Recv() (*GetThreadByFirmResponse, error)
-	grpc.ClientStream
-}
-
-type threadServiceGetThreadByFirmClient struct {
-	grpc.ClientStream
-}
-
-func (x *threadServiceGetThreadByFirmClient) Recv() (*GetThreadByFirmResponse, error) {
-	m := new(GetThreadByFirmResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 // ThreadServiceServer is the server API for ThreadService service.
 // All implementations must embed UnimplementedThreadServiceServer
 // for forward compatibility
@@ -132,7 +99,6 @@ type ThreadServiceServer interface {
 	CreateThread(context.Context, *CreateThreadRequest) (*CreateThreadResponse, error)
 	CreateComment(context.Context, *CreateCommentRequest) (*CreateCommentResponse, error)
 	GetThreadComments(*GetThreadRequest, ThreadService_GetThreadCommentsServer) error
-	GetThreadByFirm(*GetThreadByFirmRequest, ThreadService_GetThreadByFirmServer) error
 	mustEmbedUnimplementedThreadServiceServer()
 }
 
@@ -151,9 +117,6 @@ func (UnimplementedThreadServiceServer) CreateComment(context.Context, *CreateCo
 }
 func (UnimplementedThreadServiceServer) GetThreadComments(*GetThreadRequest, ThreadService_GetThreadCommentsServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetThreadComments not implemented")
-}
-func (UnimplementedThreadServiceServer) GetThreadByFirm(*GetThreadByFirmRequest, ThreadService_GetThreadByFirmServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetThreadByFirm not implemented")
 }
 func (UnimplementedThreadServiceServer) mustEmbedUnimplementedThreadServiceServer() {}
 
@@ -243,27 +206,6 @@ func (x *threadServiceGetThreadCommentsServer) Send(m *GetThreadCommentsResponse
 	return x.ServerStream.SendMsg(m)
 }
 
-func _ThreadService_GetThreadByFirm_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(GetThreadByFirmRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(ThreadServiceServer).GetThreadByFirm(m, &threadServiceGetThreadByFirmServer{stream})
-}
-
-type ThreadService_GetThreadByFirmServer interface {
-	Send(*GetThreadByFirmResponse) error
-	grpc.ServerStream
-}
-
-type threadServiceGetThreadByFirmServer struct {
-	grpc.ServerStream
-}
-
-func (x *threadServiceGetThreadByFirmServer) Send(m *GetThreadByFirmResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
 // ThreadService_ServiceDesc is the grpc.ServiceDesc for ThreadService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -288,11 +230,6 @@ var ThreadService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "GetThreadComments",
 			Handler:       _ThreadService_GetThreadComments_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "GetThreadByFirm",
-			Handler:       _ThreadService_GetThreadByFirm_Handler,
 			ServerStreams: true,
 		},
 	},

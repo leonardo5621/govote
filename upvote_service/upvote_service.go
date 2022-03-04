@@ -6,41 +6,21 @@ import (
 	"log"
 	"fmt"
 	"time"
-	"github.com/leonardo5621/govote/user_service"
 	"github.com/leonardo5621/govote/orm"
 	"github.com/leonardo5621/govote/utilities"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"github.com/davecgh/go-spew/spew"
 )
-
-type UpvoteThreadModel struct {
-	Id       *primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	UserId   *primitive.ObjectID `json:"userId" bson:"userId,omitempty"`
-	ThreadId *primitive.ObjectID `json:"threadId" bson:"threadId,omitempty"`
-	Votedir  int          `json: "votedir" bson:"votedir,omnitempty"`
-}
 
 type UpvoteServer struct {
 	UnimplementedUpvoteServiceServer
 }
 
-type NotificationCache struct {
-	UserEmailsToNotify []string
-	CacheSize int
-}
-
-var notificationCache = NotificationCache{
-	UserEmailsToNotify: make([]string, 0),
-	CacheSize: 2,
-}
-
-var notificationChannel chan string
 
 func (u *UpvoteServer) VoteThread(s UpvoteService_VoteThreadServer) error {
+	db := orm.OrmSession.Client.Database("upvote")
 	StartNotificationSender(10 * time.Second)
 	go NotificationSender(s)
 	for {
@@ -57,33 +37,18 @@ func (u *UpvoteServer) VoteThread(s UpvoteService_VoteThreadServer) error {
 		}
 
 		// Check if thread exists
-		threadId, err := primitive.ObjectIDFromHex(votePayload.GetThreadId())
-		spew.Dump(threadId)
-		if err != nil {
-			return utilities.ReturnInternalError(err)
-		}
-		threadCollection := orm.OrmSession.Client.Database("upvote").Collection("thread")
-		exists, err := orm.CheckDocumentExists(bson.M{"_id": threadId}, threadCollection, context.Background())
-		if err != nil {
-			return utilities.ReturnInternalError(err)
-		} else if !exists {
-			return status.Errorf(codes.NotFound, fmt.Sprintf("ThreadId %v does not exist", threadId))
-		}
+		threadExistErr := orm.CheckCollectionForDocId(votePayload.GetThreadId(), db.Collection("thread"), context.Background())
+		if threadExistErr != nil {
+			return utilities.ReturnValidationError(threadExistErr)
+		} 
 		// Check if user exists
-		userId, err := primitive.ObjectIDFromHex(votePayload.GetUserId())
-		if err != nil {
-			return utilities.ReturnInternalError(err)
-		}
-		userCollection := orm.OrmSession.Client.Database("upvote").Collection("user")
-		userExists, err := orm.CheckDocumentExists(bson.M{"_id": userId}, userCollection, context.Background())
-		if err != nil {
-			return utilities.ReturnInternalError(err)
-		} else if !userExists {
-			return status.Errorf(codes.NotFound, fmt.Sprintf("UserId %v does not exist", userId))
-		}
+		userExistErr := orm.CheckCollectionForDocId(votePayload.GetUserId(), db.Collection("user"), context.Background())
+		if userExistErr != nil {
+			return utilities.ReturnValidationError(userExistErr)
+		} 
 
 		// Handle voting
-		threadVote, err := orm.ConvertToEquivalentStruct(votePayload, UpvoteThreadModel{})
+		threadVote, err := orm.ConvertStruct(votePayload, UpvoteThreadModel{})
 		valid, err := handleVote(threadVote.(*UpvoteThreadModel))
 		if err != nil {
 			return utilities.ReturnInternalError(err)
@@ -95,92 +60,33 @@ func (u *UpvoteServer) VoteThread(s UpvoteService_VoteThreadServer) error {
 	return nil
 }
 
-func StartNotificationSender(interval time.Duration) {
-	notificationChannel = make(chan string)
-	go func() {
-		clock := time.NewTicker(interval)
-		for {
-			select {
-			// Trigger a notification each five seconds
-			case <-clock.C:
-				log.Println("Running notification job")
-				notificationChannel <- "notify"
-			}
-		}
-	}()
-}
-
-func NotificationSender(stream UpvoteService_VoteThreadServer) {
-	for range notificationChannel {
-		log.Printf("Sending notification to %v users", len(notificationCache.UserEmailsToNotify))
-		for _, e := range notificationCache.UserEmailsToNotify {
-			err := stream.Send(&VoteThreadResponse{
-				Email: e,
-				Notification: "Your thread has been upvoted",
-			})
-			if err != nil {
-				log.Fatalf("A notification has not been sent: %v", err)
-			}
-		}
-		notificationCache.UserEmailsToNotify = make([]string, 0)
-	}
-}
-
-func addUserEmailToCache(userId primitive.ObjectID, userCollection *mongo.Collection) (error) {
-	var threadOwner user_service.UserModel
-	user := userCollection.FindOne(context.Background(), bson.M{"_id": userId})
-	if err := user.Decode(&threadOwner); err != nil {
-		return utilities.ReturnInternalError(err)
-	}
-	notificationCache.UserEmailsToNotify = append(
-		notificationCache.UserEmailsToNotify,
-		threadOwner.Email,
-	)
-	if len(notificationCache.UserEmailsToNotify) >= notificationCache.CacheSize {
-		notificationChannel <- "notify"
-	}
-	return nil
-}
-
-func handleVote(votePayload *UpvoteThreadModel) (bool, error) {
+func handleVote(newVote Upvote) (bool, error) {
 	db := orm.OrmSession.Client.Database("upvote")
-	voteQuery := bson.M{"threadId": votePayload.ThreadId, "userId": votePayload.UserId }
+	voteQuery := newVote.GetSearchQuery()
 	voteCollection := db.Collection("votes")
 	threadCollection := db.Collection("thread")
 	foundVote, err := orm.FindByQuery(voteQuery, voteCollection, context.Background())
 	if err != nil {
 		return false, utilities.ReturnInternalError(err)
 	}
-
-	var updateThreadVote int32
 	
 	if len(foundVote) == 1 {
 		userVote := foundVote[0]
-		spew.Dump(userVote)
-		lastVoteDir, ok := userVote["votedir"]
-		if !ok {
-			return false, status.Errorf(codes.NotFound, fmt.Sprintf("Vote not set correctly"))
+		// Existing vote manager function
+		updateThreadVote, err := manageExistingVote(newVote, voteCollection, userVote)
+		if err != nil {
+			return false, utilities.ReturnInternalError(err)
 		}
 		// Delete existing vote
-		deletedRes, deleteErr := voteCollection.DeleteOne(context.TODO(), voteQuery)
+		deletedRes, deleteErr := voteCollection.DeleteOne(context.Background(), voteQuery)
 		if deleteErr != nil {
 			return false, utilities.ReturnInternalError(deleteErr)
 		}
 		fmt.Printf("Deleted %v Documents!\n", deletedRes.DeletedCount)
-		voteDirection := lastVoteDir.(int32)
-		if voteDirection == int32(votePayload.Votedir) {
-			updateThreadVote = -1 * voteDirection
-		}	else {
-			updateThreadVote = -2 * voteDirection
-			// Create new vote if it is in the opposite direction
-			_, err := orm.Create(votePayload, voteCollection, context.Background())
-			if err != nil {
-				return false, utilities.ReturnInternalError(err)
-			}
-		}
+		
 
 		// Updating the thread
-		res, nil := threadCollection.UpdateOne(context.Background(), bson.M{"_id": votePayload.ThreadId}, bson.D{
+		res, nil := threadCollection.UpdateOne(context.Background(), bson.M{"_id": newVote.GetResourceId()}, bson.D{
 			{"$inc", bson.M{"voteCount": updateThreadVote}},
 		})
 		if err != nil {
@@ -188,14 +94,14 @@ func handleVote(votePayload *UpvoteThreadModel) (bool, error) {
 		}
 		fmt.Printf("Updated %v Documents!\n", res.ModifiedCount)
 	} else if len(foundVote) == 0 {
-		updateThreadVote = int32(votePayload.Votedir)
+		updateThreadVote := newVote.GetVotedir()
 		// Create new vote if it is in the opposite direction
-		_, err := orm.Create(votePayload, voteCollection, context.Background())
+		_, err := orm.Create(newVote, voteCollection, context.Background())
 		if err != nil {
 			return false, utilities.ReturnInternalError(err)
 		}
 		// Updating the thread
-		res, err := threadCollection.UpdateOne(context.Background(), bson.M{"_id": votePayload.ThreadId}, bson.D{
+		res, err := threadCollection.UpdateOne(context.Background(), bson.M{"_id": newVote.GetResourceId()}, bson.D{
 			{"$inc", bson.M{"voteCount": updateThreadVote}},
 		})
 		if err != nil {
@@ -203,11 +109,39 @@ func handleVote(votePayload *UpvoteThreadModel) (bool, error) {
 		}
 		fmt.Printf("Updated %v Documents!\n", res.ModifiedCount)
 	} else {
-		return false, status.Errorf(codes.NotFound, fmt.Sprintf("Multiple votes found fot the same thread of user %v", votePayload.UserId))
+		return false, status.Errorf(codes.NotFound, fmt.Sprintf("Multiple votes found fot the same thread of user %v", newVote.GetUserId()))
 	}
-	notificationErr := addUserEmailToCache(*votePayload.UserId, db.Collection("user"))
+	notificationErr := addUserEmailToCache(*newVote.GetUserId(), db.Collection("user"))
 	if notificationErr != nil {
 		return false, utilities.ReturnInternalError(notificationErr)
 	}
 	return true, nil
+}
+
+func manageExistingVote(
+	votePayload Upvote,
+	collection *mongo.Collection,
+	existingVote map[string]interface {},
+	) (int32, error) {
+		var updateVote int32
+
+		// Check vote account consistency
+		lastVoteDir, ok := existingVote["votedir"]
+		if !ok {
+			return 0, status.Errorf(codes.NotFound, fmt.Sprintf("Vote not set correctly"))
+		}
+
+		voteDirection := lastVoteDir.(int32)
+		// Determine the update factor of the corresponding resource
+		if voteDirection == votePayload.GetVotedir() {
+			updateVote = -1 * voteDirection
+		}	else {
+			updateVote = -2 * voteDirection
+			// Create new vote if it is in the opposite direction
+			_, err := orm.Create(votePayload, collection, context.Background())
+			if err != nil {
+				return 0, utilities.ReturnInternalError(err)
+			}
+		}
+		return updateVote, nil
 }

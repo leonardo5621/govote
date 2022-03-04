@@ -58,8 +58,6 @@ func (m *Comment) validate(all bool) error {
 
 	// no validation rules for Id
 
-	// no validation rules for AnswerOf
-
 	// no validation rules for Text
 
 	// no validation rules for AuthorUserId
@@ -67,6 +65,8 @@ func (m *Comment) validate(all bool) error {
 	// no validation rules for AuthorUserName
 
 	// no validation rules for ThreadId
+
+	// no validation rules for VoteCount
 
 	if len(errors) > 0 {
 		return CommentMultiError(errors)
@@ -172,15 +172,13 @@ func (m *Thread) validate(all bool) error {
 
 	// no validation rules for OwnerUserId
 
-	// no validation rules for Archived
-
 	// no validation rules for Description
 
 	// no validation rules for OwnerUserName
 
-	// no validation rules for FirmId
+	// no validation rules for Archived
 
-	// no validation rules for FirmName
+	// no validation rules for VoteCount
 
 	if len(errors) > 0 {
 		return ThreadMultiError(errors)
@@ -314,17 +312,6 @@ func (m *ThreadCreationPayload) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_ThreadCreationPayload_FirmId_Pattern.MatchString(m.GetFirmId()) {
-		err := ThreadCreationPayloadValidationError{
-			field:  "FirmId",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9]*$\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	if len(errors) > 0 {
 		return ThreadCreationPayloadMultiError(errors)
 	}
@@ -406,8 +393,6 @@ var _ interface {
 } = ThreadCreationPayloadValidationError{}
 
 var _ThreadCreationPayload_OwnerUserId_Pattern = regexp.MustCompile("^[A-Za-z0-9]*$")
-
-var _ThreadCreationPayload_FirmId_Pattern = regexp.MustCompile("^[A-Za-z0-9]*$")
 
 // Validate checks the field values on GetThreadRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -1392,249 +1377,3 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CreateCommentResponseValidationError{}
-
-// Validate checks the field values on GetThreadByFirmRequest with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *GetThreadByFirmRequest) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on GetThreadByFirmRequest with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// GetThreadByFirmRequestMultiError, or nil if none found.
-func (m *GetThreadByFirmRequest) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *GetThreadByFirmRequest) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if !_GetThreadByFirmRequest_FirmId_Pattern.MatchString(m.GetFirmId()) {
-		err := GetThreadByFirmRequestValidationError{
-			field:  "FirmId",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9]*$\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if len(errors) > 0 {
-		return GetThreadByFirmRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-// GetThreadByFirmRequestMultiError is an error wrapping multiple validation
-// errors returned by GetThreadByFirmRequest.ValidateAll() if the designated
-// constraints aren't met.
-type GetThreadByFirmRequestMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m GetThreadByFirmRequestMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m GetThreadByFirmRequestMultiError) AllErrors() []error { return m }
-
-// GetThreadByFirmRequestValidationError is the validation error returned by
-// GetThreadByFirmRequest.Validate if the designated constraints aren't met.
-type GetThreadByFirmRequestValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e GetThreadByFirmRequestValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e GetThreadByFirmRequestValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e GetThreadByFirmRequestValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e GetThreadByFirmRequestValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e GetThreadByFirmRequestValidationError) ErrorName() string {
-	return "GetThreadByFirmRequestValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e GetThreadByFirmRequestValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sGetThreadByFirmRequest.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = GetThreadByFirmRequestValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = GetThreadByFirmRequestValidationError{}
-
-var _GetThreadByFirmRequest_FirmId_Pattern = regexp.MustCompile("^[A-Za-z0-9]*$")
-
-// Validate checks the field values on GetThreadByFirmResponse with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *GetThreadByFirmResponse) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on GetThreadByFirmResponse with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// GetThreadByFirmResponseMultiError, or nil if none found.
-func (m *GetThreadByFirmResponse) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *GetThreadByFirmResponse) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if all {
-		switch v := interface{}(m.GetThread()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, GetThreadByFirmResponseValidationError{
-					field:  "Thread",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, GetThreadByFirmResponseValidationError{
-					field:  "Thread",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetThread()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return GetThreadByFirmResponseValidationError{
-				field:  "Thread",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if len(errors) > 0 {
-		return GetThreadByFirmResponseMultiError(errors)
-	}
-
-	return nil
-}
-
-// GetThreadByFirmResponseMultiError is an error wrapping multiple validation
-// errors returned by GetThreadByFirmResponse.ValidateAll() if the designated
-// constraints aren't met.
-type GetThreadByFirmResponseMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m GetThreadByFirmResponseMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m GetThreadByFirmResponseMultiError) AllErrors() []error { return m }
-
-// GetThreadByFirmResponseValidationError is the validation error returned by
-// GetThreadByFirmResponse.Validate if the designated constraints aren't met.
-type GetThreadByFirmResponseValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e GetThreadByFirmResponseValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e GetThreadByFirmResponseValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e GetThreadByFirmResponseValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e GetThreadByFirmResponseValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e GetThreadByFirmResponseValidationError) ErrorName() string {
-	return "GetThreadByFirmResponseValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e GetThreadByFirmResponseValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sGetThreadByFirmResponse.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = GetThreadByFirmResponseValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = GetThreadByFirmResponseValidationError{}

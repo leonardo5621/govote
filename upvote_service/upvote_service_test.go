@@ -73,7 +73,6 @@ func TestUpvote(t *testing.T) {
 				t.Errorf("%v.Send(%v) = %v: ", stream, instruction, err)
 			}
 		}
-		<- closer
 		if err := stream.CloseSend(); err != nil {
 			log.Fatalf("%v.CloseSend() got error %v, want %v", stream, err, nil)
 			t.Errorf("%v.CloseSend() got error %v, want %v", stream, err, nil)
