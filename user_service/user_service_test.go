@@ -31,14 +31,14 @@ func TestCreationvalidation(t *testing.T) {
 
 func TestGetvalidation(t *testing.T) {
 	userReq := &GetUserRequest{
-		UserId: "12323@$!!",
+		UserId: "12323wtyf",
 	}
 	idValidation := userReq.Validate()
 	if idValidation == nil {
-		t.Error("Id validation failed, special characters passed")
+		t.Error("Id validation failed, non-hexadecimal characters were allowed")
 	}
 	userReqCorrect := &GetUserRequest{
-		UserId: "123232wrsedSASF",
+		UserId: "12abEADF2453adbcadf",
 	}
 	idValidationErr := userReqCorrect.Validate()
 	if idValidationErr != nil {

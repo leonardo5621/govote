@@ -50,12 +50,12 @@ message Thread {
 
 message ThreadCreationPayload {
   string title = 1 [(validate.rules).string = { min_len: 5, max_len: 150}];
-  string ownerUserId = 2 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+  string ownerUserId = 2 [(validate.rules).string.pattern = "^[A-Fa-f0-9]*$"];
   string description = 3 [(validate.rules).string = { max_len: 1000}];
 }
 
 message GetThreadRequest {
-  string threadId = 1 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+  string threadId = 1 [(validate.rules).string.pattern = "^[A-Fa-f0-9]*$"];
 }
 
 message GetThreadResponse {
@@ -76,8 +76,8 @@ message GetThreadCommentsResponse {
 
 message CreateCommentPayload {
   string text = 1 [(validate.rules).string = { min_len: 1, max_len: 200}];
-  string authorUserId = 2 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
-  string threadId = 3 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+  string authorUserId = 2 [(validate.rules).string.pattern = "^[A-Fa-f0-9]*$"];
+  string threadId = 3 [(validate.rules).string.pattern = "^[A-Fa-f0-9]*$"];
 }
 
 message CreateCommentRequest {
