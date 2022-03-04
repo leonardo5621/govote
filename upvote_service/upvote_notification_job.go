@@ -24,6 +24,8 @@ var notificationCache = NotificationCache{
 
 var notificationChannel chan string
 
+var closeNotificationJob chan string
+
 // Running a timer which after a certain interval
 // Emits a trigger in order to send a notification
 // To the client
@@ -32,6 +34,7 @@ var notificationChannel chan string
 // as it is done in social media)
 func StartNotificationSender(interval time.Duration) {
 	notificationChannel = make(chan string)
+	closeNotificationJob = make(chan string)
 	go func() {
 		clock := time.NewTicker(interval)
 		for {
@@ -40,6 +43,9 @@ func StartNotificationSender(interval time.Duration) {
 			case <-clock.C:
 				log.Println("Running notification job")
 				notificationChannel <- "notify"
+			case <- closeNotificationJob:
+				log.Println("Closing notification job")
+				return
 			}
 		}
 	}()

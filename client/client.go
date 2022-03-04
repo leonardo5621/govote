@@ -1,4 +1,4 @@
-package client
+package main
 
 import (
 	"fmt"
@@ -9,60 +9,23 @@ import (
 	"google.golang.org/grpc"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"github.com/leonardo5621/govote/orm"
-	"github.com/leonardo5621/govote/thread_service"
-	"github.com/leonardo5621/govote/user_service"
 	"github.com/leonardo5621/govote/upvote_service"
-	"github.com/leonardo5621/govote/utilities"
 )
 
 type Essentials struct {
 	UserIds []*primitive.ObjectID
 	ThreadId *primitive.ObjectID
-	Votes []*upvote_service.UpvoteThreadModel
+	Votes []*upvote_service.VoteThreadRequest
 }
+
+var waiter = make(chan struct{})
+
 
 var EssentialsRun Essentials
 
-func spawnUser(i int)  (*primitive.ObjectID, error) {
-	user := &user_service.UserModel{
-		FirstName: fmt.Sprintf("client%v", i),
-		LastName: fmt.Sprintf("client%v", i),
-		UserName: fmt.Sprintf("userclient%v", i),
-		Email: fmt.Sprintf("client%v@client.com", i),
-	}
-	collection := orm.OrmSession.Client.Database("upvote").Collection("user")
-	userIdHex, err := orm.Create(user, collection, context.Background())
-	if err != nil {
-		return nil, utilities.ReturnInternalError(err)
-	}
-	userId, err := primitive.ObjectIDFromHex(userIdHex)
-	if err != nil {
-		return nil, fmt.Errorf("Object ID invalid: %v", err)
-	}
-	return &userId, nil
-}
-
-func spawnThread(i int, userId *primitive.ObjectID)  (*primitive.ObjectID, error) {
-	thread := &thread_service.ThreadModel{
-		Title: fmt.Sprintf("Thread %v", i),
-		Description: fmt.Sprintf("Thread%v description", i),
-		OwnerUserId: userId,
-	}
-	collection := orm.OrmSession.Client.Database("upvote").Collection("thread")
-	threadIdHex, err := orm.Create(thread, collection, context.Background())
-	if err != nil {
-		return nil, utilities.ReturnInternalError(err)
-	}
-	threadId, err := primitive.ObjectIDFromHex(threadIdHex)
-	if err != nil {
-		return nil, fmt.Errorf("Object ID invalid: %v", err)
-	}
-	return &threadId, nil
-}
-
 func (e *Essentials) spawnEssentials() error{
 	for i := 0; i <= 4; i++ {
-		userId, err := spawnUser(0)
+		userId, err := SpawnUser(0)
 		if err != nil {
 			return fmt.Errorf("User spawn error: %v", err)
 		}
@@ -70,7 +33,7 @@ func (e *Essentials) spawnEssentials() error{
 
 	}
 	userId := e.UserIds[0]
-	threadId, err := spawnThread(0, userId)
+	threadId, err := SpawnThread(0, userId)
 	if err != nil {
 		return fmt.Errorf("Thread spawn error: %v", err)
 	}
@@ -81,10 +44,10 @@ func (e *Essentials) spawnEssentials() error{
 
 func (e *Essentials) spawnVotes() {
 	for _, uId := range e.UserIds {
-		newVote := &upvote_service.UpvoteThreadModel{
-			UserId: uId,
-			ThreadId: e.ThreadId,
-			Votedir: 1,
+		newVote := &upvote_service.VoteThreadRequest{
+			UserId: uId.Hex(),
+			ThreadId: e.ThreadId.Hex(),
+			Votedir: -1,
 		}
 		e.Votes = append(e.Votes, newVote)
 	}
@@ -96,32 +59,30 @@ func main() {
 		log.Fatalf("could not connect: %v", err)
 	}
 	defer connect.Close()
-	client := upvote_service.NewUpvoteServiceClient(connect)
-	mongoClient := orm.OpenMongoDBconnection()
+	_ = orm.OpenMongoDBconnection()
+	upvoteClient := upvote_service.NewUpvoteServiceClient(connect)
 	spawnErr := EssentialsRun.spawnEssentials()
 	if spawnErr != nil {
 		log.Fatalf("could not spawn essentials: %v", spawnErr)
 	}
-	runVoteStream(client)
-	if errDisconnect := mongoClient.Disconnect(context.Background()); errDisconnect != nil {
-		log.Fatalf("Mongo DB disconnection failed: %v", err)
-	}
+
+	EssentialsRun.spawnVotes()
+	runVoteStream(upvoteClient)
+	
+	<-waiter
 }
 
 func runVoteStream(upvoteClient upvote_service.UpvoteServiceClient) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
-	defer cancel()
-	stream, err := upvoteClient.VoteThread(ctx)
+	stream, err := upvoteClient.VoteThread(context.Background())
 	if err != nil {
 		log.Fatalf("Could not start the voting stream: %v", err)
 	}
-	waitc := make(chan struct{})
 	go func() {
 		for {
 			result, err := stream.Recv()
 			if err == io.EOF {
 				log.Println("EOF")
-				close(waitc)
+				close(waiter)
 				return
 			}
 			if err != nil {
@@ -136,7 +97,8 @@ func runVoteStream(upvoteClient upvote_service.UpvoteServiceClient) {
 			if err := stream.Send(instruction); err != nil {
 				log.Fatalf("%v.Send(%v) = %v: ", stream, instruction, err)
 			}
+			time.Sleep(2000 * time.Millisecond)
 		}
-
+		stream.CloseSend()
 	}()
 }

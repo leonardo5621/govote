@@ -1,0 +1,14 @@
+name: upvote validation tests
+on: [push]
+jobs:
+  upvote_validation_test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Running upvote_service package unit tests workflow"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Starting check
+        run: go test ./upvote_service
+      - name: Finishing
+        run: echo "All upvote_service tests passed"
