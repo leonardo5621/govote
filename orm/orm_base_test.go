@@ -92,7 +92,7 @@ func TestStructconversion(t *testing.T) {
 		Id:   "123",
 		Name: "test",
 	}
-	convertedModel, err := ConvertToEquivalentStruct(mockJsonSupport, MockWithBsonSupport{})
+	convertedModel, err := ConvertToStructWithBsonSupport(mockJsonSupport, MockWithBsonSupport{})
 	if err != nil {
 		t.Errorf("Conversion failed: %v", err)
 	}
