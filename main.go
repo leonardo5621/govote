@@ -13,7 +13,7 @@ import (
 	"github.com/leonardo5621/govote/orm"
 	"github.com/leonardo5621/govote/thread_service"
 	"github.com/leonardo5621/govote/user_service"
-	//"github.com/leonardo5621/govote/upvote_service"
+	"github.com/leonardo5621/govote/upvote_service"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -51,7 +51,7 @@ func main() {
 	server := grpc.NewServer(opts...)
 	user_service.RegisterUserServiceServer(server, &user_service.UserServer{})
 	thread_service.RegisterThreadServiceServer(server, &thread_service.ThreadServer{})
-	//upvote_service.RegisterUpvoteServiceServer(server, &upvote_service.UpvoteServer{})
+	upvote_service.RegisterUpvoteServiceServer(server, &upvote_service.UpvoteServer{})
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
