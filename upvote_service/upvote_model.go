@@ -20,28 +20,28 @@ type UpvoteThreadModel struct {
 }
 
 func (u *UpvoteThreadModel) GetVotedir() int32 {
-	if u != nil {
+	if u == nil {
 		return 0
 	}
 	return u.Votedir
 }
 
 func (u *UpvoteThreadModel) GetSearchQuery() primitive.M {
-	if u != nil {
+	if u == nil {
 		return nil
 	}
 	return bson.M{"threadId": u.ThreadId, "userId": u.UserId }
 }
 
 func (u *UpvoteThreadModel) GetResourceId() *primitive.ObjectID {
-	if u != nil {
+	if u == nil {
 		return nil
 	}
 	return u.ThreadId
 }
 
 func (u *UpvoteThreadModel) GetUserId() *primitive.ObjectID {
-	if u != nil {
+	if u == nil {
 		return nil
 	}
 	return u.UserId

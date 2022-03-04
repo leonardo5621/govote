@@ -1,0 +1,14 @@
+name: Thread validation tests
+on: [push]
+jobs:
+  thread_validation_test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Running thread_service package unit tests workflow"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Starting check
+        run: go test ./thread_service
+      - name: Finishing
+        run: echo "All thread_service tests passed"

@@ -38,12 +38,10 @@ func (s *UserServer) CreateUser(ctx context.Context, req *CreateUserRequest) (*C
 	if validationError != nil {
 		return nil, utilities.ReturnValidationError(validationError)
 	}
-	// Pass the message parameter to a UserModel struct, which
-	// Has bson Marshal support
-	user, err := orm.ConvertStruct(userPayload, UserModel{})
-	if err != nil {
-		return nil, utilities.ReturnInternalError(err)
-	}
+	
+	user := &UserModel{}
+	user.Init(userPayload)
+
 	collection := orm.OrmSession.Client.Database("upvote").Collection("user")
 	userId, err := orm.Create(user, collection, ctx)
 	if err != nil {

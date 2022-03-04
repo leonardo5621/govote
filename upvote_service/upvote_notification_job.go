@@ -2,6 +2,7 @@ package upvote_service
 
 import (
 	"log"
+	"fmt"
 	"time"
 	"context"
 	"github.com/leonardo5621/govote/utilities"
@@ -23,8 +24,17 @@ var notificationCache = NotificationCache{
 
 var notificationChannel chan string
 
+var closeNotificationJob chan string
+
+// Running a timer which after a certain interval
+// Emits a trigger in order to send a notification
+// To the client
+// Such a notification is meant to inform about the upvoting
+// Of a thread to a certain user(which could be sent to its e-mail
+// as it is done in social media)
 func StartNotificationSender(interval time.Duration) {
 	notificationChannel = make(chan string)
+	closeNotificationJob = make(chan string)
 	go func() {
 		clock := time.NewTicker(interval)
 		for {
@@ -33,6 +43,9 @@ func StartNotificationSender(interval time.Duration) {
 			case <-clock.C:
 				log.Println("Running notification job")
 				notificationChannel <- "notify"
+			case <- closeNotificationJob:
+				log.Println("Closing notification job")
+				return
 			}
 		}
 	}()
@@ -44,7 +57,10 @@ func NotificationSender(stream UpvoteService_VoteThreadServer) {
 		for _, e := range notificationCache.UserEmailsToNotify {
 			err := stream.Send(&VoteThreadResponse{
 				Email: e,
-				Notification: "Your thread has been upvoted",
+				Notification: fmt.Sprintf(`
+				To: %v
+				Your thread has been upvoted!
+				`, e),
 			})
 			if err != nil {
 				log.Fatalf("A notification has not been sent: %v", err)

@@ -21,13 +21,14 @@ type UpvoteServer struct {
 
 func (u *UpvoteServer) VoteThread(s UpvoteService_VoteThreadServer) error {
 	db := orm.OrmSession.Client.Database("upvote")
-	StartNotificationSender(10 * time.Second)
+	StartNotificationSender(5 * time.Second)
 	go NotificationSender(s)
 	for {
 		votePayload, err := s.Recv()
 		// Check if the client is open
 		if err == io.EOF {
 			log.Println("Client has closed connection")
+			close(closeNotificationJob)
 			break
 		}
 		// Validate message params

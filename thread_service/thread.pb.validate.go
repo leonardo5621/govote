@@ -293,7 +293,7 @@ func (m *ThreadCreationPayload) validate(all bool) error {
 	if !_ThreadCreationPayload_OwnerUserId_Pattern.MatchString(m.GetOwnerUserId()) {
 		err := ThreadCreationPayloadValidationError{
 			field:  "OwnerUserId",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9]*$\"",
+			reason: "value does not match regex pattern \"^[A-Fa-f0-9]*$\"",
 		}
 		if !all {
 			return err
@@ -392,7 +392,7 @@ var _ interface {
 	ErrorName() string
 } = ThreadCreationPayloadValidationError{}
 
-var _ThreadCreationPayload_OwnerUserId_Pattern = regexp.MustCompile("^[A-Za-z0-9]*$")
+var _ThreadCreationPayload_OwnerUserId_Pattern = regexp.MustCompile("^[A-Fa-f0-9]*$")
 
 // Validate checks the field values on GetThreadRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -419,7 +419,7 @@ func (m *GetThreadRequest) validate(all bool) error {
 	if !_GetThreadRequest_ThreadId_Pattern.MatchString(m.GetThreadId()) {
 		err := GetThreadRequestValidationError{
 			field:  "ThreadId",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9]*$\"",
+			reason: "value does not match regex pattern \"^[A-Fa-f0-9]*$\"",
 		}
 		if !all {
 			return err
@@ -505,7 +505,7 @@ var _ interface {
 	ErrorName() string
 } = GetThreadRequestValidationError{}
 
-var _GetThreadRequest_ThreadId_Pattern = regexp.MustCompile("^[A-Za-z0-9]*$")
+var _GetThreadRequest_ThreadId_Pattern = regexp.MustCompile("^[A-Fa-f0-9]*$")
 
 // Validate checks the field values on GetThreadResponse with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -1040,7 +1040,7 @@ func (m *CreateCommentPayload) validate(all bool) error {
 	if !_CreateCommentPayload_AuthorUserId_Pattern.MatchString(m.GetAuthorUserId()) {
 		err := CreateCommentPayloadValidationError{
 			field:  "AuthorUserId",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9]*$\"",
+			reason: "value does not match regex pattern \"^[A-Fa-f0-9]*$\"",
 		}
 		if !all {
 			return err
@@ -1051,7 +1051,7 @@ func (m *CreateCommentPayload) validate(all bool) error {
 	if !_CreateCommentPayload_ThreadId_Pattern.MatchString(m.GetThreadId()) {
 		err := CreateCommentPayloadValidationError{
 			field:  "ThreadId",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9]*$\"",
+			reason: "value does not match regex pattern \"^[A-Fa-f0-9]*$\"",
 		}
 		if !all {
 			return err
@@ -1139,9 +1139,9 @@ var _ interface {
 	ErrorName() string
 } = CreateCommentPayloadValidationError{}
 
-var _CreateCommentPayload_AuthorUserId_Pattern = regexp.MustCompile("^[A-Za-z0-9]*$")
+var _CreateCommentPayload_AuthorUserId_Pattern = regexp.MustCompile("^[A-Fa-f0-9]*$")
 
-var _CreateCommentPayload_ThreadId_Pattern = regexp.MustCompile("^[A-Za-z0-9]*$")
+var _CreateCommentPayload_ThreadId_Pattern = regexp.MustCompile("^[A-Fa-f0-9]*$")
 
 // Validate checks the field values on CreateCommentRequest with the rules
 // defined in the proto definition for this message. If any rules are

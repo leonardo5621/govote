@@ -2,6 +2,10 @@ package user_service
 
 import (
 	"testing"
+	"reflect"
+	"gotest.tools/v3/assert"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func TestCreationvalidation(t *testing.T) {
@@ -27,17 +31,47 @@ func TestCreationvalidation(t *testing.T) {
 
 func TestGetvalidation(t *testing.T) {
 	userReq := &GetUserRequest{
-		UserId: "12323@$!!",
+		UserId: "12323wtyf",
 	}
 	idValidation := userReq.Validate()
 	if idValidation == nil {
-		t.Error("Id validation failed, special characters passed")
+		t.Error("Id validation failed, non-hexadecimal characters were allowed")
 	}
 	userReqCorrect := &GetUserRequest{
-		UserId: "123232wrsedSASF",
+		UserId: "12abEADF2453adbcadf",
 	}
 	idValidationErr := userReqCorrect.Validate()
 	if idValidationErr != nil {
 		t.Errorf("Id validation failed, allowed characters were not recognized, %v", idValidationErr)
 	}
+}
+
+func TestInituser(t *testing.T) {
+	userPayload := &User{
+		FirstName: "test1",
+		LastName: "test2",
+		Email: "test@test.com",
+		UserName: "None",
+	}
+	user := &UserModel{}
+	err := user.Init(userPayload)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestUserfinder(t *testing.T) {
+	oid := primitive.NewObjectID()
+	userFinder := &UserFinder{}
+	err := userFinder.Init(oid.Hex())
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, reflect.DeepEqual(userFinder.UserId, &oid), true)	
+	assert.Equal(t, reflect.DeepEqual(*userFinder.GetFindOneQuery(), bson.M{"_id": userFinder.UserId }), true)
+	assert.Equal(
+		t,
+		reflect.TypeOf(userFinder.GetDecodeTargetStruct()).Kind(),
+		reflect.TypeOf(&UserModel{}).Kind(),
+	)
 }

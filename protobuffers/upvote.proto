@@ -14,9 +14,9 @@ service UpvoteService {
 }
 
 message VoteThreadRequest {
-  string userId = 1 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+  string userId = 1 [(validate.rules).string.pattern = "^[A-Fa-f0-9]*$"];
   int32 votedir = 2 [(validate.rules).int32 = { in: [-1, 1] }];
-  string threadId = 3 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+  string threadId = 3 [(validate.rules).string.pattern = "^[A-Fa-f0-9]*$"];
 }
 
 message VoteThreadResponse {
@@ -25,9 +25,9 @@ message VoteThreadResponse {
 }
 
 message VoteCommentRequest {
-  string userId = 1 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+  string userId = 1 [(validate.rules).string.pattern = "^[A-Fa-f0-9]*$"];
   int32 votedir = 2 [(validate.rules).int32 = { in: [-1, 1] }];
-  string commentId = 3 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+  string commentId = 3 [(validate.rules).string.pattern = "^[A-Fa-f0-9]*$"];
 }
 
 message VoteCommentResponse {

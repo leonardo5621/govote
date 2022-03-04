@@ -31,7 +31,7 @@ message User {
 }
 
 message GetUserRequest {
-  string userId = 1 [(validate.rules).string.pattern = "^[A-Za-z0-9]*$"];
+  string userId = 1 [(validate.rules).string.pattern = "^[A-Fa-f0-9]*$"];
 }
 
 message CreateUserRequest {

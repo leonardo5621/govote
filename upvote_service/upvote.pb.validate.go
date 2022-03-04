@@ -60,7 +60,7 @@ func (m *VoteThreadRequest) validate(all bool) error {
 	if !_VoteThreadRequest_UserId_Pattern.MatchString(m.GetUserId()) {
 		err := VoteThreadRequestValidationError{
 			field:  "UserId",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9]*$\"",
+			reason: "value does not match regex pattern \"^[A-Fa-f0-9]*$\"",
 		}
 		if !all {
 			return err
@@ -82,7 +82,7 @@ func (m *VoteThreadRequest) validate(all bool) error {
 	if !_VoteThreadRequest_ThreadId_Pattern.MatchString(m.GetThreadId()) {
 		err := VoteThreadRequestValidationError{
 			field:  "ThreadId",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9]*$\"",
+			reason: "value does not match regex pattern \"^[A-Fa-f0-9]*$\"",
 		}
 		if !all {
 			return err
@@ -170,14 +170,14 @@ var _ interface {
 	ErrorName() string
 } = VoteThreadRequestValidationError{}
 
-var _VoteThreadRequest_UserId_Pattern = regexp.MustCompile("^[A-Za-z0-9]*$")
+var _VoteThreadRequest_UserId_Pattern = regexp.MustCompile("^[A-Fa-f0-9]*$")
 
 var _VoteThreadRequest_Votedir_InLookup = map[int32]struct{}{
 	-1: {},
 	1:  {},
 }
 
-var _VoteThreadRequest_ThreadId_Pattern = regexp.MustCompile("^[A-Za-z0-9]*$")
+var _VoteThreadRequest_ThreadId_Pattern = regexp.MustCompile("^[A-Fa-f0-9]*$")
 
 // Validate checks the field values on VoteThreadResponse with the rules
 // defined in the proto definition for this message. If any rules are
@@ -310,7 +310,7 @@ func (m *VoteCommentRequest) validate(all bool) error {
 	if !_VoteCommentRequest_UserId_Pattern.MatchString(m.GetUserId()) {
 		err := VoteCommentRequestValidationError{
 			field:  "UserId",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9]*$\"",
+			reason: "value does not match regex pattern \"^[A-Fa-f0-9]*$\"",
 		}
 		if !all {
 			return err
@@ -332,7 +332,7 @@ func (m *VoteCommentRequest) validate(all bool) error {
 	if !_VoteCommentRequest_CommentId_Pattern.MatchString(m.GetCommentId()) {
 		err := VoteCommentRequestValidationError{
 			field:  "CommentId",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9]*$\"",
+			reason: "value does not match regex pattern \"^[A-Fa-f0-9]*$\"",
 		}
 		if !all {
 			return err
@@ -420,14 +420,14 @@ var _ interface {
 	ErrorName() string
 } = VoteCommentRequestValidationError{}
 
-var _VoteCommentRequest_UserId_Pattern = regexp.MustCompile("^[A-Za-z0-9]*$")
+var _VoteCommentRequest_UserId_Pattern = regexp.MustCompile("^[A-Fa-f0-9]*$")
 
 var _VoteCommentRequest_Votedir_InLookup = map[int32]struct{}{
 	-1: {},
 	1:  {},
 }
 
-var _VoteCommentRequest_CommentId_Pattern = regexp.MustCompile("^[A-Za-z0-9]*$")
+var _VoteCommentRequest_CommentId_Pattern = regexp.MustCompile("^[A-Fa-f0-9]*$")
 
 // Validate checks the field values on VoteCommentResponse with the rules
 // defined in the proto definition for this message. If any rules are

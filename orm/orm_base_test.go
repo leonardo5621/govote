@@ -17,11 +17,6 @@ import (
 
 type MockDBoperator struct{}
 
-func (m MockDBoperator) FindOne(ctx context.Context, filter interface{},
-	opts ...*options.FindOneOptions) *mongo.SingleResult {
-	return &mongo.SingleResult{}
-}
-
 func (m MockDBoperator) InsertOne(ctx context.Context, document interface{},
 	opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
 	id := primitive.NewObjectID()
@@ -43,25 +38,38 @@ func (m MockDBoperator) CountDocuments(ctx context.Context, filter interface{},
 	}
 }
 
-func (m MockDBoperator) Find(ctx context.Context, filter interface{},
-	opts ...*options.FindOptions) (cur *mongo.Cursor, err error) {
-		foundDoc, err := bson.Marshal(bson.D{{"find", "this"}})
-		if err != nil {
-			return nil, status.Errorf(codes.NotFound, fmt.Sprintf("Marshaling failed: %v", err))
-		}
-		return &mongo.Cursor{
-			Current: foundDoc,
-		}, nil
-}
-
 type MockWithBsonSupport struct {
-	Id   string `json:"id" bson:"_id,omitempty"`
+	Id   *primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	Name string `json: "firstName" bson:"firstName,omnitempty"`
 }
 
 type MockWithOnlyJsonSupport struct {
 	Id   string `json:"id"`
 	Name string `json: "firstName"`
+}
+
+type MockFinder struct {
+	Id *primitive.ObjectID
+}
+
+func (mf *MockFinder) Init(Id string) error {
+	oid, err := primitive.ObjectIDFromHex(Id)
+	if err != nil {
+		return status.Errorf(codes.InvalidArgument, fmt.Sprintf("Could not convert to ObjectId: %v", err))
+	}
+	mf.Id = &oid
+	return nil
+}
+
+func (mf *MockFinder) GetFindOneQuery() *primitive.M {
+	if mf.Id == nil {
+		return nil
+	}
+	return &bson.M{"_id": mf.Id }
+}
+
+func (mf *MockFinder) GetDecodeTargetStruct() interface {} {
+	return &MockWithBsonSupport{}
 }
 
 func TestCreation(t *testing.T) {
@@ -78,26 +86,50 @@ func TestCreation(t *testing.T) {
 }
 
 func TestFindone(t *testing.T) {
-	collection := MockDBoperator{}
-	ctx := context.Background()
-	mockStruct := struct{ Name string }{Name: "Example"}
-	_, err := FindDocument("621eca5ff0636d9bad2826bd", collection, ctx, mockStruct)
-	if err == nil {
-		t.Errorf("Search failed")
-	}
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	defer mt.Close()
+	mt.Run("Find one test", func(mt *mtest.T) {
+		collection := mt.Coll
+		oid := primitive.NewObjectID()
+		ctx := context.Background()
+		mockFinder := &MockFinder{}
+		mockFinder.Id = &oid
+
+		doc, err := FindDocument(mockFinder, collection, ctx)
+		if err != nil && doc == nil{
+			t.Log(err)
+		} else {
+			t.Errorf("Result should have been nil")
+		}
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "mock.test", mtest.FirstBatch, bson.D{
+			{"_id", oid},
+			{"name", "test"},
+		}))
+
+		foundDoc, err := FindDocument(mockFinder, collection, ctx)
+		if err != nil {
+			t.Error(err)
+		}
+		reflect.DeepEqual(&MockWithBsonSupport{
+			Id: &oid, Name: "test",
+		}, foundDoc)
+		
+	})
 }
 
 func TestStructconversion(t *testing.T) {
+	oid := primitive.NewObjectID()
 	mockJsonSupport := MockWithOnlyJsonSupport{
-		Id:   "123",
+		Id:   oid.Hex(),
 		Name: "test",
 	}
-	convertedModel, err := ConvertToStructWithBsonSupport(mockJsonSupport, MockWithBsonSupport{})
+	convertedModel, err := ConvertStruct(mockJsonSupport, MockWithBsonSupport{})
 	if err != nil {
 		t.Errorf("Conversion failed: %v", err)
 	}
 	mockWithBson := convertedModel.(*MockWithBsonSupport)
-	if mockWithBson.Name != mockJsonSupport.Name || mockWithBson.Id != mockJsonSupport.Id {
+	if mockWithBson.Name != mockJsonSupport.Name {
 		t.Errorf("Wrong values after conversion, Id= %v , Name= %v", mockWithBson.Id, mockWithBson.Name)
 	}
 }
@@ -125,6 +157,13 @@ func TestQueryfinder(t *testing.T) {
 		collection := mt.Coll
 		oId1 := primitive.NewObjectID()
 		searchQuery := bson.M{"name": "test"}
+		firstSearchResult, err := FindByQuery(searchQuery, collection, ctx)
+
+		if err != nil && firstSearchResult == nil{
+			t.Log(err)
+		} else {
+			t.Errorf("Result should have been nil")
+		}
 
 		mock1 := mtest.CreateCursorResponse(1, "mock.test", mtest.FirstBatch, bson.D{
 			{"_id", oId1},
@@ -139,5 +178,28 @@ func TestQueryfinder(t *testing.T) {
 		}
 		foundName := res[0]["name"]
 		assert.Equal(t, "test", foundName)
+	})
+}
+
+func TestCheckforid(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	defer mt.Close()
+	mt.Run("Check for Id test", func(mt *mtest.T) {
+		collection := mt.Coll
+		oid := primitive.NewObjectID()
+		ctx := context.Background()
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "mock.test", mtest.FirstBatch, bson.D{{"_id", oid}}))
+		err := CheckCollectionForDocId("123", collection, ctx)
+		if err != nil {
+			t.Log(err)
+		} else {
+			t.Errorf("A not valid objectID error should have been returned")
+		}
+
+		foundDoc := CheckCollectionForDocId(oid.Hex(), collection, ctx)
+		if foundDoc == nil {
+			t.Error("Error should have been nil")
+		}
 	})
 }

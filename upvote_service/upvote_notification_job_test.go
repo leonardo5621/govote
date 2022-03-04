@@ -32,7 +32,7 @@ func TestEmailcache (t *testing.T) {
 		collection := mt.Coll
 		oid := primitive.NewObjectID()
 
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, "foo.bar", mtest.FirstBatch, bson.D{
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "mock.test", mtest.FirstBatch, bson.D{
 			{"_id", primitive.NewObjectID()},
 			{"name", "test"},
 			{"email", "test@test.com"},
