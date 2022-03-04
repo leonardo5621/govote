@@ -54,7 +54,6 @@ func Create(model interface{}, collection DocumentInserter, ctx context.Context)
 }
 
 func FindDocument(finder FindOneOperator, collection DocumentFinder, ctx context.Context) (interface{}, error) {
-	// targetStructPtr := reflect.New(reflect.TypeOf(finder.GetDecodeTargetStruct())).Interface()
 	targetStructPtr := finder.GetDecodeTargetStruct()
 	if targetStructPtr == nil {
 		return nil, status.Errorf(codes.NotFound, fmt.Sprintf("Target struct not set"))

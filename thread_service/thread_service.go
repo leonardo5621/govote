@@ -45,10 +45,10 @@ func (s *ThreadServer) CreateThread(ctx context.Context, req *CreateThreadReques
 	}
 	// Pass the message parameter to a ThreadModel struct, which
 	// Has bson Marshal support
-	thread, err := orm.ConvertStruct(threadPayload, ThreadModel{})
-	assertedThread := thread.(*ThreadModel)
-	if err != nil {
-		return nil, utilities.ReturnInternalError(err)
+	thread := &ThreadModel{}
+	threadInitErr := thread.Init(threadPayload)
+	if threadInitErr != nil {
+		return nil, utilities.ReturnInternalError(threadInitErr)
 	}
 	// Check if user exists
 	// And get its name if it is the case
@@ -63,10 +63,10 @@ func (s *ThreadServer) CreateThread(ctx context.Context, req *CreateThreadReques
 	if err != nil {
 		return nil, utilities.ReturnInternalError(err)
 	}
-	assertedThread.OwnerUserName = user.UserName
+	thread.OwnerUserName = user.UserName
 	// Thread creation
 	collection := orm.OrmSession.Client.Database("upvote").Collection("thread")
-	threadId, err := orm.Create(assertedThread, collection, ctx)
+	threadId, err := orm.Create(thread, collection, ctx)
 	if err != nil {
 		return nil, utilities.ReturnInternalError(err)
 	}
@@ -82,13 +82,14 @@ func (s *ThreadServer) CreateComment(ctx context.Context, req *CreateCommentRequ
 	if validationError != nil {
 		return nil, utilities.ReturnValidationError(validationError)
 	}
-	// Pass the message parameter to a ThreadModel struct, which
-	// Has bson Marshal support
-	comment, err := orm.ConvertStruct(commentPayload, CommentModel{})
-	assertedComment := comment.(*CommentModel)
-	if err != nil {
-		return nil, utilities.ReturnInternalError(err)
+
+	// Initialize an instance of the comment model
+	comment := &CommentModel{}
+	commentInitErr := comment.Init(commentPayload)
+	if commentInitErr != nil {
+		return nil, utilities.ReturnInternalError(commentInitErr)
 	}
+
 	// Check if user exists
 	// And get its name if it is the case
 	userFinder := &user_service.UserFinder{}
@@ -102,7 +103,7 @@ func (s *ThreadServer) CreateComment(ctx context.Context, req *CreateCommentRequ
 	if err != nil {
 		return nil, utilities.ReturnInternalError(err)
 	}
-	assertedComment.AuthorUserName = user.UserName
+	comment.AuthorUserName = user.UserName
 	// Check if the thread exist
 	threadExistErr := orm.CheckCollectionForDocId(commentPayload.GetThreadId(), db.Collection("thread"), context.Background())
 	if threadExistErr != nil {
@@ -110,7 +111,7 @@ func (s *ThreadServer) CreateComment(ctx context.Context, req *CreateCommentRequ
 	} 
 	// Comment creation
 	collection := orm.OrmSession.Client.Database("upvote").Collection("comment")
-	commentId, err := orm.Create(assertedComment, collection, ctx)
+	commentId, err := orm.Create(comment, collection, ctx)
 	if err != nil {
 		return nil, utilities.ReturnInternalError(err)
 	}

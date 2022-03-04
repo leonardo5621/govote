@@ -17,6 +17,14 @@ type UserModel struct {
 	Activated bool                `json: "activated" bson:"activated,omnitempty"`
 }
 
+func (um *UserModel) Init(userPayload *User) error {
+	um.FirstName = userPayload.GetFirstName()
+	um.LastName = userPayload.GetLastName()
+	um.UserName = userPayload.GetUserName()
+	um.Email = userPayload.GetEmail()
+	return nil
+}
+
 type UserFinder struct {
 	UserId *primitive.ObjectID
 }
@@ -40,4 +48,3 @@ func (uf *UserFinder) GetFindOneQuery() *primitive.M {
 func (uf *UserFinder) GetDecodeTargetStruct() interface {} {
 	return &UserModel{}
 }
-
